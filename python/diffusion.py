@@ -14,7 +14,7 @@ nphot_lim = float(sys.argv[2])
 nphot_type = int(sys.argv[3])
 setthreads = int(sys.argv[4])
 
-# print((2*c.h**2*c.c**3/c.k_B).cgs)
+# Functions fot dB/dT and Rosseland mean opacity, two variants using wavelengths and frequency
 def bplanckdt_wav(temp, wav):
     theexp = np.exp(1.4387768775039338/(temp*wav))
 
@@ -59,7 +59,7 @@ def rossmean_nu(td,nus,alpha):
 
     return numer/denom
 
-
+# Reading input files for RADMC3D for coordinate system data, dust temperature and density
 gridstyle, coordsystem = np.loadtxt(working_folder+'amr_grid.inp', skiprows=1, max_rows=2, dtype=int)
 if (int(gridstyle) != 0):
     raise Exception("Diffusion is not yet implemented for non-regular grids")
@@ -77,6 +77,8 @@ edges = [x_edge, y_edge, z_edge]
 dust_dens_full = np.loadtxt(working_folder+f'dust_density.inp')
 dtemp_full = np.loadtxt(working_folder+f'dust_temperature.dat')
 ndust = int(dtemp_full[2])
+# Two types of diffusion area definition, first is simple limit on the amount of photons
+# Second does photon statistics on several runs and the limit is imposed on photon number stdev
 if nphot_type==1:
     nphot = np.loadtxt(working_folder+f'photon_statistics.out', skiprows=2)
 if nphot_type==2:
@@ -128,7 +130,7 @@ if nphot_type==2:
     shutil.move(working_folder + f'radmc3d_ini.inp', working_folder + f'radmc3d.inp')
 
 nwav = np.loadtxt(working_folder+f'wavelength_micron.inp',max_rows=1,dtype=int)
-
+# Multidust alpha computation
 dust_iformat = np.loadtxt(working_folder + f'dustopac.inp', max_rows=1, dtype=int)
 alpha = np.zeros((nwav, nrcells))
 for idust in range(ndust):
@@ -143,15 +145,18 @@ for idust in range(ndust):
     for ic in range(nrcells):
         alpha[:, ic] += kappa_ext*dust_dens[ic]
 
-
+# Functions that do diffusion, three versions based on dimensions
+# Further are the comments only for 1D, others are similar
 def diffusion_1d(X1, dtemp, alpha, nus, idust):
     nx1 = X1.shape
+    # Mask that defines the diffusion area
     if nphot_type==1:
         dif_mask = nphot < nphot_lim
     if nphot_type==2:
         dif_mask = nphot_stdev > nphot_lim
     dif_mask_wb = dif_mask.copy()
     ir_dif = np.where(dif_mask)
+    # Adding boundries by reshaping the mask (well, in 1D you don't need to reshape, but in 2D and 3D we do)
     for i in range(len(ir_dif)):
         try:
             dif_mask_wb[ir_dif[i] + 1] = 1
@@ -167,13 +172,13 @@ def diffusion_1d(X1, dtemp, alpha, nus, idust):
     ndiff = len(ir_dif)
     if ndiff==0:
         sys.exit()
+
     diffconst = np.zeros(ndiff)
-    # tguess = 100
     told = np.zeros(ndiff)
     tnew = np.zeros(ndiff)
     is_boundry = np.zeros(ndiff)
     A_dif = np.zeros((ndiff, ndiff))
-
+    # Make initial guess of the inverse Rosseland-mean alpha
     for idiff in range(ndiff):
         ir = ir_dif[idiff]
         if ir in ir_b.tolist():
@@ -182,7 +187,6 @@ def diffusion_1d(X1, dtemp, alpha, nus, idust):
         told[idiff] = dtemp[ir] ** 4
         diffconst[idiff] = 1. / rossmean_nu(told[idiff], nus, alpha[:,ir])
 
-    # tguess = tguess*is_boundry
     need_iter = True
     n_iter = 0
 
@@ -229,9 +233,7 @@ def diffusion_1d(X1, dtemp, alpha, nus, idust):
         lu, piv = lu_factor(A_dif)
         # tnew, exitCode = bicg(A_dif, told*is_boundry, rtol=1e-10)
         tnew = lu_solve((lu, piv), told * is_boundry)
-        # print(A_dif.dot(tnew)-told*is_boundry)
         tnew[tnew <= 2.73 ** 4] = 2.73 ** 4
-        # print(np.max(abs(tnew/told-1)))
 
         if (np.max(abs(tnew / told - 1)) < 1e-5):
             need_iter = False
@@ -287,7 +289,6 @@ def diffusion_2d(X1, X2, dtemp, alpha, nus, idust):
     if ndiff==0:
         sys.exit()
     diffconst = np.zeros(ndiff)
-    # tguess = 100
     told = np.zeros(ndiff)
     tnew = np.zeros(ndiff)
     is_boundry = np.zeros(ndiff)
@@ -304,7 +305,6 @@ def diffusion_2d(X1, X2, dtemp, alpha, nus, idust):
         told[idiff] = dtemp[it, ir] ** 4
         diffconst[idiff] = 1. / rossmean_nu(told[idiff], nus, alpha[:, it, ir])
 
-    # tguess = tguess*is_boundry
     need_iter = True
     n_iter = 0
 
@@ -385,9 +385,7 @@ def diffusion_2d(X1, X2, dtemp, alpha, nus, idust):
         lu, piv = lu_factor(A_dif)
         # tnew, exitCode = bicg(A_dif, told*is_boundry, rtol=1e-10)
         tnew = lu_solve((lu, piv), told * is_boundry)
-        # print(A_dif.dot(tnew)-told*is_boundry)
         tnew[tnew <= 2.73 ** 4] = 2.73 ** 4
-        # print(np.max(abs(tnew/told-1)))
 
         if (np.max(abs(tnew / told - 1)) < 1e-5):
             need_iter = False
@@ -452,7 +450,6 @@ def diffusion_3d(X1, X2, X3, dtemp, alpha, nus, idust):
     if ndiff==0:
         sys.exit()
     diffconst = np.zeros(ndiff)
-    # tguess = 100
     told = np.zeros(ndiff)
     tnew = np.zeros(ndiff)
     is_boundry = np.zeros(ndiff)
@@ -470,7 +467,6 @@ def diffusion_3d(X1, X2, X3, dtemp, alpha, nus, idust):
         told[idiff] = dtemp[iz, it, ir] ** 4
         diffconst[idiff] = 1. / rossmean_nu(told[idiff], nus, alpha[:, iz, it, ir])
 
-    # tguess = tguess*is_boundry
     need_iter = True
     n_iter = 0
 
@@ -608,8 +604,8 @@ def diffusion_3d(X1, X2, X3, dtemp, alpha, nus, idust):
 for idust in range(ndust):
 
     dtemp = dtemp_full[3+nrcells*idust:3 + nrcells*(idust+1)]
-    dtemp[dtemp < 2.73] = 2.73
-
+    dtemp[dtemp < 2.73] = 2.73 # To avoid zeros
+    # Coordinate meshgrids
     if ((coordsystem >= 100) and (coordsystem<200)):
         rc = np.sqrt(x_edge[1:] * x_edge[:-1])
         tc = 0.5*(y_edge[1:] + y_edge[:-1])
@@ -624,7 +620,7 @@ for idust in range(ndust):
         coords = np.meshgrid(zc, yc, xc, indexing='ij')
     else:
         raise Exception('Other coordinate systems are not implemented yet')
-
+    # Calling diffusion
     if amr_dim == 1:
         X1 = coords[2 - iaxes[0]][0][0]
         diffusion_1d(X1, dtemp, alpha, nus, idust)
@@ -634,7 +630,7 @@ for idust in range(ndust):
     elif amr_dim == 3:
         X1, X2, X3 = coords[2], coords[1], coords[0]
         diffusion_3d(X1, X2, X3, dtemp, alpha, nus, idust)
-
+# Writing new temperature back
 inp = dtemp_full[:3].astype(int)
 np.savetxt(working_folder+f'dust_temperature.dat', dtemp_full[3:], delimiter='\n', header=f'{inp[0]}\n{inp[1]}\n{inp[2]}', comments='')
 
