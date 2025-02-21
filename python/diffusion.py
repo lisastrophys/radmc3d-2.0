@@ -149,9 +149,12 @@ for idust in range(ndust):
     for ic in range(nrcells):
         alpha[:, ic] += kappa_ext*dust_dens[ic]
 
+wav = np.loadtxt(working_folder+f'wavelength_micron.inp',skiprows=1)
+nus = clight / wav
+
 # Functions that do diffusion, three versions based on dimensions
 # Further are the comments only for 1D, others are similar
-def diffusion_1d(X1, dtemp, alpha, nus, idust):
+def diffusion_1d(X1, dtemp, alpha, idust):
     nx1 = X1.shape
     # Mask that defines the diffusion area
     if nphot_type==1:
@@ -258,7 +261,7 @@ def diffusion_1d(X1, dtemp, alpha, nus, idust):
     dtemp = dtemp.flatten()
     dtemp_full[3 + nrcells * idust:3 + nrcells * (idust + 1)] = dtemp
 
-def diffusion_2d(X1, X2, dtemp, alpha, nus, idust):
+def diffusion_2d(X1, X2, dtemp, alpha, idust):
     nx2, nx1 = X1.shape
     dtemp = np.reshape(dtemp, X1.shape)
     alpha = np.reshape(alpha, (nwav, nx2, nx1))
@@ -411,7 +414,7 @@ def diffusion_2d(X1, X2, dtemp, alpha, nus, idust):
     dtemp = dtemp.flatten()
     dtemp_full[3 + nrcells * idust:3 + nrcells * (idust + 1)] = dtemp
 
-def diffusion_3d(X1, X2, X3, dtemp, alpha, nus, idust):
+def diffusion_3d(X1, X2, X3, dtemp, alpha, idust):
     nx3, nx2, nx1 = X1.shape
     dtemp = np.reshape(dtemp, X1.shape)
     alpha = np.reshape(alpha, (nwav, nx3, nx2, nx1))
@@ -627,13 +630,13 @@ for idust in range(ndust):
     # Calling diffusion
     if amr_dim == 1:
         X1 = coords[2 - iaxes[0]][0][0]
-        diffusion_1d(X1, dtemp, alpha, nus, idust)
+        diffusion_1d(X1, dtemp, alpha, idust)
     elif amr_dim == 2:
         X1, X2 = coords[2 - iaxes[0]][0], coords[2 - iaxes[1]][0]
-        diffusion_2d(X1, X2, dtemp, alpha, nus, idust)
+        diffusion_2d(X1, X2, dtemp, alpha, idust)
     elif amr_dim == 3:
         X1, X2, X3 = coords[2], coords[1], coords[0]
-        diffusion_3d(X1, X2, X3, dtemp, alpha, nus, idust)
+        diffusion_3d(X1, X2, X3, dtemp, alpha, idust)
 # Writing new temperature back
 inp = dtemp_full[:3].astype(int)
 np.savetxt(working_folder+f'dust_temperature.dat', dtemp_full[3:], delimiter='\n', header=f'{inp[0]}\n{inp[1]}\n{inp[2]}', comments='')
