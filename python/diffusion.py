@@ -101,6 +101,7 @@ if nphot_type==2:
     nphot_mean = np.zeros(nrcells)
     nphot_stdev = np.zeros(nrcells)
     shutil.copy(working_folder+f'photon_statistics.out', working_folder+f'photon_statistics_00.out')
+    shutil.move(working_folder + f'dust_temperature.dat', working_folder + f'dust_temperature_ini.dat')
     for i in range(1,10):
         subprocess.run(["radmc3d", "mctherm", "setthreads", f"{setthreads}"],
                        stdout=subprocess.DEVNULL,
@@ -124,10 +125,8 @@ if nphot_type==2:
     with open(working_folder+'radmc3d.inp', 'w') as configfile:
         for key in out:
             print(f"{key} = {out[key]}", file=configfile)
-    subprocess.run(["radmc3d", "mctherm", "setthreads", f"{setthreads}"],
-                   stdout=subprocess.DEVNULL,
-                   stderr=subprocess.DEVNULL)
     shutil.move(working_folder + f'radmc3d_ini.inp', working_folder + f'radmc3d.inp')
+    shutil.move(working_folder + f'dust_temperature_ini.dat', working_folder + f'dust_temperature.dat')
 
 nwav = np.loadtxt(working_folder+f'wavelength_micron.inp',max_rows=1,dtype=int)
 # Multidust alpha computation
