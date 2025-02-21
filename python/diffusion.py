@@ -125,9 +125,8 @@ if nphot_type==2:
             dum /= 10
         nphot_stdev += (dum-nphot_mean)**2/9
 
-    nphot_mean += 1e-10 # Just to avoid zeros
     nphot_stdev = np.sqrt(nphot_stdev)/nphot_mean
-    out['nphot_therm'] = int(int(out['nphot_therm'])*10)
+    nphot_stdev[nphot_mean == 0] = 10 # Setting a very high value for cells with zero photons
     with open(working_folder+'radmc3d.inp', 'w') as configfile:
         for key in out:
             print(f"{key} = {out[key]}", file=configfile)
