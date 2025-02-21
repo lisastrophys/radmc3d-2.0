@@ -5,6 +5,9 @@ import subprocess
 # from scipy.sparse import bsr_array
 from scipy.linalg import lu_factor, lu_solve
 # import astropy.constants as c
+import warnings
+# Just shitting down overflow in exp warnings
+warnings.filterwarnings("ignore")
 
 clight = 2.9979245800000e10
 
@@ -13,6 +16,8 @@ working_folder = sys.argv[1]+'/'
 nphot_lim = float(sys.argv[2])
 nphot_type = int(sys.argv[3])
 setthreads = int(sys.argv[4])
+
+
 
 # Functions fot dB/dT and Rosseland mean opacity, two variants using wavelengths and frequency
 def bplanckdt_wav(temp, wav):
@@ -120,6 +125,7 @@ if nphot_type==2:
             dum /= 10
         nphot_stdev += (dum-nphot_mean)**2/9
 
+    nphot_mean += 1e-10 # Just to avoid zeros
     nphot_stdev = np.sqrt(nphot_stdev)/nphot_mean
     out['nphot_therm'] = int(int(out['nphot_therm'])*10)
     with open(working_folder+'radmc3d.inp', 'w') as configfile:
