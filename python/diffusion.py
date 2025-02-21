@@ -6,7 +6,7 @@ import subprocess
 from scipy.linalg import lu_factor, lu_solve
 # import astropy.constants as c
 import warnings
-# Just shitting down overflow in exp warnings
+# Just shutting down overflow in exp warnings
 warnings.filterwarnings("ignore")
 
 clight = 2.9979245800000e10
