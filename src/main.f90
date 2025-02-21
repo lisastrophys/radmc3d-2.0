@@ -2309,6 +2309,7 @@ subroutine read_radmcinp_file()
      call parse_input_integer('incl_quantum@                 ',incl_quantum)
      call parse_input_integer('istar_sphere@                 ',inc_star_size)
      call parse_input_double ('nphotdiff@                    ',rt_mcparams%nphotdiff)
+     if (rt_mcparams%nphotdiff.gt.0) rt_mcparams%debug_write_stats=1
      call parse_input_integer('nphotdiff_type@               ',rt_mcparams%nphotdiff_type)
      call parse_input_double ('errtol@                       ',rt_mcparams%errtoldiff)
      call parse_input_double ('errtoldiff@                   ',rt_mcparams%errtoldiff)
