@@ -23,7 +23,9 @@ setthreads = int(sys.argv[4])
 def bplanckdt_wav(temp, wav):
     theexp = np.exp(1.4387768775039338/(temp*wav))
 
-    if (theexp < 1e33):
+    if (theexp == 1):
+        bpdt = 2 * 1.380649e-16 * clight / wav**4
+    elif (theexp < 1e33):
         bpdt = 1.71364508879863e-05 * (1 / wav ** 6) * (theexp / (theexp - 1) ** 2) * (1 / temp ** 2)
     else:
         bpdt = 1.71364508879863e-05 * (1 / wav ** 6) * (1 / theexp) * (1 / temp ** 2)
@@ -33,7 +35,9 @@ def bplanckdt_wav(temp, wav):
 def bplanckdt_nu(temp, nu):
     theexp = np.exp(4.7989e-11*nu/(temp))
 
-    if (theexp < 1e33):
+    if (theexp == 1):
+        bpdt = 2 * 1.380649e-16 * nu**2 / clight**2
+    elif (theexp < 1e33):
         bpdt = 7.07661334104e-58 * nu**4 * (theexp / (theexp - 1) ** 2) * (1 / temp ** 2) + 1e-290
     else:
         bpdt = 7.07661334104e-58 * nu**4 * (1 / theexp) * (1 / temp ** 2) + 1e-290
@@ -135,11 +139,11 @@ if nphot_type==2:
 
 nwav = np.loadtxt(working_folder+f'wavelength_micron.inp',max_rows=1,dtype=int)
 # Multidust alpha computation
-dust_iformat = np.loadtxt(working_folder + f'dustopac.inp', max_rows=1, dtype=int)
 alpha = np.zeros((nwav, nrcells))
 for idust in range(ndust):
     dust_dens = dust_dens_full[3 + nrcells * idust:3 + nrcells * (idust + 1)]
     dust_name = np.loadtxt(working_folder + f'dustopac.inp', skiprows=5 + 4 * idust, max_rows=1, dtype=str)
+    dust_iformat = np.loadtxt(working_folder + f'dustkappa_{dust_name}.inp.used', max_rows=1, dtype=int)
     dust_kappa = np.loadtxt(working_folder + f'dustkappa_{dust_name}.inp.used', skiprows=4)
     wav = dust_kappa[:, 0] * 1e-4
     nus = clight / wav
