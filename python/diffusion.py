@@ -16,6 +16,7 @@ working_folder = sys.argv[1]+'/'
 nphot_lim = float(sys.argv[2])
 nphot_type = int(sys.argv[3])
 setthreads = int(sys.argv[4])
+mp_lim = 0.1 # Up to experimentation
 
 
 
@@ -88,7 +89,7 @@ dtemp_full = np.loadtxt(working_folder+f'dust_temperature.dat')
 ndust = int(dtemp_full[2])
 # Two types of diffusion area definition, first is simple limit on the amount of photons
 # Second does photon statistics on several runs and the limit is imposed on photon number stdev
-if nphot_type==1:
+if nphot_type==1 or nphot_type==3:
     nphot = np.loadtxt(working_folder+f'photon_statistics.out', skiprows=2)
 if nphot_type==2:
     out = {}
@@ -101,7 +102,12 @@ if nphot_type==2:
     del out['nphotdiff_type']
     del out['nphotdiff']
     out["debug_write_stats"] = 1
-    out['nphot_therm'] = int(int(out['nphot_therm'])/10)
+    if "nphot_therm" in out:
+        out['nphot_therm'] = int(int(out['nphot_therm'])/10)
+    elif "nphot" in out:
+        out['nphot_therm'] = int(int(out['nphot'])/10)
+    else:
+        out['nphot_therm'] = 10000 #10 times less the default
     shutil.copy(working_folder + f'radmc3d.inp', working_folder + f'radmc3d_ini.inp')
     with open(working_folder+'radmc3d.inp', 'w') as configfile:
         for key in out:
@@ -137,6 +143,7 @@ if nphot_type==2:
     shutil.move(working_folder + f'radmc3d_ini.inp', working_folder + f'radmc3d.inp')
     shutil.move(working_folder + f'dust_temperature_ini.dat', working_folder + f'dust_temperature.dat')
 
+
 nwav = np.loadtxt(working_folder+f'wavelength_micron.inp',max_rows=1,dtype=int)
 # Multidust alpha computation
 alpha = np.zeros((nwav, nrcells))
@@ -145,8 +152,6 @@ for idust in range(ndust):
     dust_name = np.loadtxt(working_folder + f'dustopac.inp', skiprows=5 + 4 * idust, max_rows=1, dtype=str)
     dust_iformat = np.loadtxt(working_folder + f'dustkappa_{dust_name}.inp.used', max_rows=1, dtype=int)
     dust_kappa = np.loadtxt(working_folder + f'dustkappa_{dust_name}.inp.used', skiprows=4)
-    wav = dust_kappa[:, 0] * 1e-4
-    nus = clight / wav
     kappa_ext = dust_kappa[:, 1]
     if dust_iformat > 1:
         kappa_ext += dust_kappa[:, 2]  # Assuming that scattering is isotropic in diffusion regime
@@ -161,10 +166,26 @@ nus = clight / wav
 def diffusion_1d(X1, dtemp, alpha, idust):
     nx1 = X1.shape
     # Mask that defines the diffusion area
-    if nphot_type==1:
+    if nphot_type==1 or nphot_type==3:
         dif_mask = nphot < nphot_lim
     if nphot_type==2:
         dif_mask = nphot_stdev > nphot_lim
+
+    if nphot_type == 3:
+        ir_dif = np.where(dif_mask)
+        ndiff = len(ir_dif)
+        for idiff in range(ndiff):
+            ir = ir_dif[idiff]
+            mean_path = 1. / rossmean_nu(dtemp[ir]**4, nus, alpha[:, ir])
+            if ir + 1 < nx1:
+                dxc_r = 0.5 * (X1[ir + 1] - X1[ir - 1])
+            else:
+                dxc_r = (X1[ir] - X1[ir - 1])
+
+            mp2cz = mean_path / np.sqrt(dxc_r)  # Ratio of mean path to cell size,
+            if mp2cz > mp_lim:  # if mean path isn't small enough compared to the cell, we eliminate these cells from consideration
+                dif_mask[ir] = False
+
     dif_mask_wb = dif_mask.copy()
     ir_dif = np.where(dif_mask)
     # Adding boundries by reshaping the mask (well, in 1D you don't need to reshape, but in 2D and 3D we do)
@@ -187,7 +208,7 @@ def diffusion_1d(X1, dtemp, alpha, idust):
     diffconst = np.zeros(ndiff)
     told = np.zeros(ndiff)
     tnew = np.zeros(ndiff)
-    is_boundry = np.zeros(ndiff)
+    is_boundry = np.zeros(ndiff, dtype=bool)
     A_dif = np.zeros((ndiff, ndiff))
     # Make initial guess of the inverse Rosseland-mean alpha
     for idiff in range(ndiff):
@@ -197,6 +218,7 @@ def diffusion_1d(X1, dtemp, alpha, idust):
             is_boundry[idiff] = 1
         told[idiff] = dtemp[ir] ** 4
         diffconst[idiff] = 1. / rossmean_nu(told[idiff], nus, alpha[:,ir])
+
 
     need_iter = True
     n_iter = 0
@@ -269,11 +291,33 @@ def diffusion_2d(X1, X2, dtemp, alpha, idust):
     nx2, nx1 = X1.shape
     dtemp = np.reshape(dtemp, X1.shape)
     alpha = np.reshape(alpha, (nwav, nx2, nx1))
-    if nphot_type==1:
+    if nphot_type==1 or nphot_type==3:
         dif_mask = nphot < nphot_lim
     if nphot_type==2:
         dif_mask = nphot_stdev > nphot_lim
+
     dif_mask = np.reshape(dif_mask, X1.shape)
+    if nphot_type == 3:
+        ith_dif, ir_dif = np.where(dif_mask)
+        ndiff = len(ith_dif)
+        for idiff in range(ndiff):
+            it = ith_dif[idiff]
+            ir = ir_dif[idiff]
+            mean_path = 1. / rossmean_nu(dtemp[it, ir]**4, nus, alpha[:, it, ir])
+            if ir + 1 < nx1:
+                dxc_r = 0.5 * (X1[it, ir + 1] - X1[it, ir - 1])
+            else:
+                dxc_r = (X1[it, ir] - X1[it, ir - 1])
+
+            if it + 1 < nx2:
+                dxc_t = 0.5 * (X2[it + 1, ir] - X2[it - 1, ir])
+            else:
+                dxc_t = (X2[it, ir] - X2[it - 1, ir])
+
+            mp2cz = mean_path / np.sqrt(dxc_t * dxc_r)  # Ratio of mean path to cell size,
+            if mp2cz > mp_lim:  # if mean path isn't small enough compared to the cell, we eliminate these cells from consideration
+                dif_mask[it, ir] = False
+
     dif_mask_wb = dif_mask.copy()
     ith_dif, ir_dif = np.where(dif_mask)
     for i in range(len(ith_dif)):
@@ -302,7 +346,7 @@ def diffusion_2d(X1, X2, dtemp, alpha, idust):
     diffconst = np.zeros(ndiff)
     told = np.zeros(ndiff)
     tnew = np.zeros(ndiff)
-    is_boundry = np.zeros(ndiff)
+    is_boundry = np.zeros(ndiff, dtype=bool)
     icoord_dif = np.column_stack((ith_dif, ir_dif)).tolist()
     icoord_b = np.column_stack((ith_b, ir_b)).tolist()
     A_dif = np.zeros((ndiff, ndiff))
@@ -393,6 +437,7 @@ def diffusion_2d(X1, X2, dtemp, alpha, idust):
             A_dif[idiff, idiff] -= (1. / dxc) * ((dcm / dxm) + (dcp / dxp))
 
         # A_dif = bsr_array(A_dif)
+
         lu, piv = lu_factor(A_dif)
         # tnew, exitCode = bicg(A_dif, told*is_boundry, rtol=1e-10)
         tnew = lu_solve((lu, piv), told * is_boundry)
@@ -422,11 +467,39 @@ def diffusion_3d(X1, X2, X3, dtemp, alpha, idust):
     nx3, nx2, nx1 = X1.shape
     dtemp = np.reshape(dtemp, X1.shape)
     alpha = np.reshape(alpha, (nwav, nx3, nx2, nx1))
-    if nphot_type==1:
+    if nphot_type==1 or nphot_type==3:
         dif_mask = nphot < nphot_lim
     if nphot_type==2:
         dif_mask = nphot_stdev > nphot_lim
     dif_mask = np.reshape(dif_mask, X1.shape)
+
+    if nphot_type == 3:
+        iz_dif, ith_dif, ir_dif = np.where(dif_mask)
+        ndiff = len(ith_dif)
+        for idiff in range(ndiff):
+            iz = iz_dif[idiff]
+            it = ith_dif[idiff]
+            ir = ir_dif[idiff]
+            mean_path = 1. / rossmean_nu(dtemp[iz, it, ir]**4, nus, alpha[:, iz, it, ir])
+            if ir + 1 < nx1:
+                dxc_r = 0.5 * (X1[iz, it, ir + 1] - X1[iz, it, ir - 1])
+            else:
+                dxc_r = (X1[iz, it, ir] - X1[iz, it, ir - 1])
+
+            if it + 1 < nx2:
+                dxc_t = 0.5 * (X2[iz, it + 1, ir] - X2[iz, it - 1, ir])
+            else:
+                dxc_t = (X2[iz, it, ir] - X2[iz, it - 1, ir])
+
+            if iz + 1 < nx3:
+                dxc_z = 0.5 * (X3[iz + 1, it, ir] - X3[iz - 1, it, ir])
+            else:
+                dxc_z = (X3[iz, it, ir] - X3[iz - 1, it, ir])
+
+            mp2cz = mean_path / (dxc_t * dxc_r * dxc_z)**(1/3.)  # Ratio of mean path to cell size,
+            if mp2cz > mp_lim:  # if mean path isn't small enough compared to the cell, we eliminate these cells from consideration
+                dif_mask[iz, it, ir] = False
+
     dif_mask_wb = dif_mask.copy()
     iz_dif, ith_dif, ir_dif = np.where(dif_mask)
     for i in range(len(ith_dif)):
@@ -463,7 +536,7 @@ def diffusion_3d(X1, X2, X3, dtemp, alpha, idust):
     diffconst = np.zeros(ndiff)
     told = np.zeros(ndiff)
     tnew = np.zeros(ndiff)
-    is_boundry = np.zeros(ndiff)
+    is_boundry = np.zeros(ndiff, dtype=bool)
     icoord_dif = np.column_stack((iz_dif, ith_dif, ir_dif)).tolist()
     icoord_b = np.column_stack((iz_b, ith_b, ir_b)).tolist()
     A_dif = np.zeros((ndiff, ndiff))
