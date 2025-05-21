@@ -11,12 +11,12 @@ warnings.filterwarnings("ignore")
 
 clight = 2.9979245800000e10
 
-print(sys.argv)
+print("Solving diffusion for each dust species...")
 working_folder = sys.argv[1]+'/'
 nphot_lim = float(sys.argv[2])
 nphot_type = int(sys.argv[3])
 setthreads = int(sys.argv[4])
-mp_lim = 0.1 # Up to experimentation
+mp_lim = 0.01 # Up to experimentation
 
 
 
