@@ -317,6 +317,7 @@ subroutine sources_partial_cleanup()
   if(allocated(sources_align_mu)) deallocate(sources_align_mu)
   if(allocated(sources_align_orth)) deallocate(sources_align_orth)
   if(allocated(sources_align_para)) deallocate(sources_align_para)
+  if(allocated(sources_stellarsrc_templates)) deallocate(sources_stellarsrc_templates)
 end subroutine sources_partial_cleanup
 
 !-------------------------------------------------------------------

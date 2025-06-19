@@ -59,6 +59,33 @@ class simplereaddataobject(object):
     def __init__(self,datatype):
         self.datatype = datatype
 
+class dustkappaobject(object):
+    """
+    Dust opacity object for the RADMC-3D simpleread.py functions.
+    """
+    def __init__(self):
+        self.datatype = 'dustkappa'
+        self.species  = None
+    def plot(self,ax=None,color=None):
+        """
+        Make a log-log plot of this opacity.
+
+        ARGUMENTS:
+          ax          The axis object (None means make new subplot)
+          color       The color (None means automatic)
+        """
+        if ax is None:
+            fig,ax = plt.subplots()
+        if color is None:
+            ax.loglog(self.wav,self.kappa_abs,label='abs')
+            ax.loglog(self.wav,self.kappa_sca,label='scat')
+        else:
+            ax.loglog(self.wav,self.kappa_abs,color=color,label=self.species)
+            ax.loglog(self.wav,self.kappa_sca,':',color=color)
+        ax.set_xlabel(r'$\lambda\;[\mu m]$')
+        ax.set_ylabel(r'$\kappa\;[cm^2/g]$')
+        return fig,ax
+
 def read_grid():
     """
     Reading the amr_grid.inp file, but only for regular grids (not for octree ones). 
@@ -409,7 +436,9 @@ def read_dustkappa(species=None):
     if species[-4:]=='.inp': species = species[:-4]
 
     # Read that dust opacity
-    dustkappa = simplereaddataobject('dustkappa')
+    #dustkappa = simplereaddataobject('dustkappa')
+    dustkappa = dustkappaobject()
+    dustkappa.species = species
     fname     = 'dustkappa_'+species+'.inp'
     print('Reading '+ fname)
     with open(fname, 'r') as rfile:
