@@ -16,6 +16,6 @@ for object in "${src_dir}"/*.o; do
 done
 
 gfortran -O2 -fopenmp -I"${src_dir}" \
-    "${repo_dir}/regression/test_dust_temperature_lookup.f90" \
+    "${repo_dir}/regression/dust_temperature_lookup.f90" \
     "${objects[@]}" -o "${test_binary}"
 "${test_binary}"
