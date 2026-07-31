@@ -137,7 +137,6 @@ double precision :: mc_iphotcurr
 ! For arrays of integrals as a function of temperature
 !
 double precision, allocatable :: db_temp(:),db_enertemp(:,:),db_cumul(:)
-double precision, allocatable :: db_logenertemp(:,:)
 double precision, allocatable :: db_emiss(:,:,:),db_cumulnorm(:,:,:)
 integer :: db_ntemp
 !
@@ -9001,11 +9000,6 @@ subroutine make_emiss_dbase(ntemp,temp0,temp1)
      write(stdo,*) 'ERROR in Montecarlo Module: Could not allocate db_temp'
      stop 
   endif
-  allocate(db_logenertemp(ntemp,dust_nr_species),STAT=ierr)
-  if(ierr.ne.0) then
-     write(stdo,*) 'ERROR in Montecarlo Module: Could not allocate db_temp'
-     stop 
-  endif
   allocate(db_emiss(freq_nr,ntemp,dust_nr_species),STAT=ierr)
   if(ierr.ne.0) then
      write(stdo,*) 'ERROR in Montecarlo Module: Could not allocate db_emiss'
@@ -9071,7 +9065,6 @@ subroutine make_emiss_dbase(ntemp,temp0,temp1)
      enddo
      do itemp=1,db_ntemp
         db_enertemp(itemp,ispec) = absevfunc(db_temp(itemp))
-        db_logenertemp(itemp,ispec) = log(db_enertemp(itemp,ispec))
         do inu=1,freq_nr
            db_emiss(inu,itemp,ispec) = fnu_diff(inu)
         enddo
@@ -9144,7 +9137,6 @@ subroutine free_emiss_dbase()
   if(allocated(db_temp)) deallocate(db_temp)
   if(allocated(db_cumulnorm)) deallocate(db_cumulnorm)
   if(allocated(db_enertemp)) deallocate(db_enertemp)
-  if(allocated(db_logenertemp)) deallocate(db_logenertemp)
   if(allocated(db_emiss)) deallocate(db_emiss)
   !$OMP PARALLEL
   if(allocated(db_cumul)) deallocate(db_cumul)
@@ -9164,21 +9156,26 @@ function compute_dusttemp_energy_bd(ener,ispec)
   implicit none
   !
   integer :: ispec
-  doubleprecision :: ener,compute_dusttemp_energy_bd,logener
+  doubleprecision :: ener,compute_dusttemp_energy_bd
   !
   integer :: itemp
   doubleprecision :: eps,temp
+  doubleprecision, parameter :: eps_tol=64.d0*epsilon(1.d0)
   !
-  ! First find the energy in the grid
+  ! Reject invalid energies before searching the monotonic table
   !
-  ! Linear method:
+  if(.not.(ener.ge.0.d0)) then
+     write(stdo,*) 'Dust-temperature interpolation failure: invalid energy'
+     write(stdo,*) 'ispec, ener = ',ispec,ener
+     stop 9911
+  endif
   !
-  !!!!!! call hunt(db_enertemp(1,ispec),db_ntemp,ener,itemp)
+  ! Find the interval in the same linear-energy table used below. Searching
+  ! its logarithm can collapse adjacent floating-point energies onto one
+  ! value and select the wrong side of an exact table boundary.
   !
-  ! Logarithmic method:
-  !
-  logener = log(ener)
-  call hunt(db_logenertemp(1,ispec),db_ntemp,logener,itemp)
+  itemp = 0
+  call hunt(db_enertemp(1,ispec),db_ntemp,ener,itemp)
   !
   ! Check if we are in range
   !
@@ -9191,7 +9188,13 @@ function compute_dusttemp_energy_bd(ener,ispec)
      ! Temperature presumably below lowest temp in dbase
      !
      eps = ener/db_enertemp(1,ispec)
-     if(eps.gt.1.d0) stop 9911
+     if((eps.gt.1.d0+eps_tol).or.(eps.lt.-eps_tol)) then
+        write(stdo,*) 'Dust-temperature interpolation failure below table'
+        write(stdo,*) 'ispec, ener, energy_min, eps = ',                  &
+                      ispec,ener,db_enertemp(1,ispec),eps
+        stop 9911
+     endif
+     eps = min(1.d0,max(0.d0,eps))
      temp = eps*db_temp(1)
   else
      !
@@ -9199,7 +9202,14 @@ function compute_dusttemp_energy_bd(ener,ispec)
      !
      eps = (ener-db_enertemp(itemp,ispec)) /                            &
            (db_enertemp(itemp+1,ispec) - db_enertemp(itemp,ispec))
-     if((eps.gt.1.d0).or.(eps.lt.0.d0)) stop 9912
+     if((eps.gt.1.d0+eps_tol).or.(eps.lt.-eps_tol)) then
+        write(stdo,*) 'Dust-temperature interpolation failure in table'
+        write(stdo,*) 'ispec, itemp, ener, energy_lo, energy_hi, eps = ', &
+                      ispec,itemp,ener,db_enertemp(itemp,ispec),          &
+                      db_enertemp(itemp+1,ispec),eps
+        stop 9912
+     endif
+     eps = min(1.d0,max(0.d0,eps))
      temp = (1.d0-eps)*db_temp(itemp) + eps*db_temp(itemp+1)
   endif
   !
