@@ -53,12 +53,17 @@ use constants_module
 ! Flag for OMP parallel version
 !
 logical :: mc_openmp_parallel = .false.
+logical :: mc_openmp_warning_shown = .false.
 !
 ! Current photon number
 ! (Must ensure huge range here)
 !
 integer(kind=8) :: ieventcounttot
 double precision :: mc_visitcell,mc_revisitcell,mc_revisitcell_max
+!
+! Counter for photon-out-of-cell errors
+!
+integer :: mc_photon_out_of_cell_count = 0
 !
 ! Flag saying whether or not to interpolate the temperature emission
 ! database in temperature
@@ -132,7 +137,6 @@ double precision :: mc_iphotcurr
 ! For arrays of integrals as a function of temperature
 !
 double precision, allocatable :: db_temp(:),db_enertemp(:,:),db_cumul(:)
-double precision, allocatable :: db_logenertemp(:,:)
 double precision, allocatable :: db_emiss(:,:,:),db_cumulnorm(:,:,:)
 integer :: db_ntemp
 !
@@ -318,11 +322,14 @@ subroutine montecarlo_init(params,ierr,mcaction,resetseed)
   !
   ! If OpenMP Parallel, make a warning
   !
-  !$ write(stdo,*) 'Beware: The OpenMP-parallel acceleration of RADMC-3D has '
-  !$ write(stdo,*) '        not yet been tested with all of the modes and'
-  !$ write(stdo,*) '        features that RADMC-3D offers. Please check '
-  !$ write(stdo,*) '        your parallel results against the serial version'
-  !$ write(stdo,*) '        (i.e. compiling without -fopenmp). '
+  if (mc_openmp_parallel .and. (.not. mc_openmp_warning_shown)) then
+     write(stdo,*) 'Beware: The OpenMP-parallel acceleration of RADMC-3D has '
+     write(stdo,*) '        not yet been tested with all of the modes and'
+     write(stdo,*) '        features that RADMC-3D offers. Please check '
+     write(stdo,*) '        your parallel results against the serial version'
+     write(stdo,*) '        (i.e. compiling without -fopenmp). '
+     mc_openmp_warning_shown = .true.
+  endif
   !
   ! Currently the polarization module is not compatible with mirror
   ! symmetry mode in spherical coordinates. 
@@ -2203,12 +2210,14 @@ subroutine do_monte_carlo_bjorkmanwood(params,ierror,resetseed)
   doubleprecision :: tempav,dum
   doubleprecision :: aa,fact,seconds
   doubleprecision :: ener,lumtotinv,entotal
+  doubleprecision :: frac
   logical :: ievenodd
   logical,optional :: resetseed
-  integer :: ierror,ierrpriv,countwrite,index,illum
+  integer :: ierror,ierrpriv,index,illum
   integer :: inu,ispec,istar,icell,nsrc,nstarsrc
-  integer*8 :: iphot,ipstart,nphot,cnt,cntdump
+  integer*8 :: iphot,ipstart,nphot,cnt,cntdump,countwrite
   integer :: iseeddum,isd,itemplate
+  integer :: perc
   logical :: mc_emergency_break
   !$ integer :: i
   !$ conflict_counter = 0
@@ -2248,6 +2257,7 @@ subroutine do_monte_carlo_bjorkmanwood(params,ierror,resetseed)
   nphot      = params%nphot_therm
   intplt     = params%iranfreqmode
   ievenodd   = .true.
+  mc_photon_out_of_cell_count = 0
   !
   ! Flag called 'mc_emergency_break' which is switched to .false. before the big loop.
   ! If an unrecoverable error occurs, it is switched to .true..
@@ -2516,8 +2526,6 @@ subroutine do_monte_carlo_bjorkmanwood(params,ierror,resetseed)
       write(stdo,*) '    !   RESTARTING THE SIMULATION   !   '
       call flush(stdo)
 !!!      call read_safety_backup_mctherm(ievenodd,params)
-      write(stdo,*) 'ERRROR: Safety backup is not yet built in.'
-      stop
       write(stdo,821) iphot
 821   format('     !   AT PHOTON NR ',I9,'      !   ')
       !
@@ -2600,7 +2608,7 @@ subroutine do_monte_carlo_bjorkmanwood(params,ierror,resetseed)
    !
    !$ id=OMP_get_thread_num()
    !$ nthreads=OMP_get_num_threads()
-   !$ write(stdo,*) 'Thread Nr',id,'of',nthreads,'threads in total'
+  !$ CONTINUE
    !$ iseed=-abs(iseed_start+id)
    !$OMP DO SCHEDULE(dynamic)
    !
@@ -2618,8 +2626,10 @@ subroutine do_monte_carlo_bjorkmanwood(params,ierror,resetseed)
          !$OMP CRITICAL
          cnt   = cnt + 1
          if(mod(cnt,countwrite).eq.0) then
-            !$   write(stdo,*) 'Thread:',id,'Photon nr:',cnt
-            if(.not.mc_openmp_parallel) write(stdo,*) 'Photon nr ',iphot
+            if (cnt.gt.nphot) cnt = nphot
+            frac = dble(cnt)/dble(nphot)
+            perc = int(frac*100.d0)
+            write(stdo,'(A,"Progress ",I3,"%",1X,I15,"/",I15)',advance='no') char(13), perc, cnt, nphot
             call flush(stdo)
          endif
          !$OMP END CRITICAL
@@ -2640,13 +2650,12 @@ subroutine do_monte_carlo_bjorkmanwood(params,ierror,resetseed)
          !!$ Some critical sections are hidden within this subroutine call
          call walk_full_path_bjorkmanwood(params,ierrpriv)
          !       
-         ! If ierrpriv.ne.0 then an error occurred, return with non-zero error code
+         ! If ierrpriv.ne.0 then an error occurred. This is rare, so continue
+         ! but increase the error counter.
          !
          if(ierrpriv.ne.0) then
-            !$OMP CRITICAL
-            mc_emergency_break = .true.
-            !$OMP END CRITICAL
-            write(stdo,*) '!!!!!!!!!!!!!!!!!!! MC_EMERGENCY_BREAK !!!!!!!!!!!!!!!!!!!!!!'
+            !$omp atomic
+            mc_photon_out_of_cell_count = mc_photon_out_of_cell_count + 1
          endif
          !
          ! Add photon to outgoing overall spectrum
@@ -2666,6 +2675,8 @@ subroutine do_monte_carlo_bjorkmanwood(params,ierror,resetseed)
    enddo
    !$OMP END DO
    !$OMP END PARALLEL
+   write(stdo,*)
+   call flush(stdo)
    !
    ! OpenMP Parallellization: destroy locks
    !
@@ -2770,6 +2781,20 @@ subroutine do_monte_carlo_bjorkmanwood(params,ierror,resetseed)
    !
    call free_emiss_dbase()
    !
+   ! If there were out-of-cell errors, report them here
+   !
+   if(mc_photon_out_of_cell_count.gt.0) then
+      write(stdo,*) '****************************************************'
+      write(stdo,*) 'There were ',mc_photon_out_of_cell_count,' photon-out-of-cell errors'
+      if(mc_photon_out_of_cell_count.lt.1e-6*nphot) then
+         write(stdo,*) 'This number is small compared to the number of photon packages.'
+         write(stdo,*) 'so it does not seem to be serious.'
+      else
+         write(stdo,*) 'Please warn the author of RADMC-3D, C.P. Dullemond.'
+      endif
+      write(stdo,*) '****************************************************'
+   endif
+   !
    ! Done...
    !
 end subroutine do_monte_carlo_bjorkmanwood
@@ -2791,14 +2816,16 @@ subroutine do_monte_carlo_scattering(params,ierror,resetseed,scatsrc,meanint)
   type(mc_params) :: params
   integer :: ierror,ierrpriv,inu
   doubleprecision :: ener,lumtotinv,temp,freq,fact
+  doubleprecision :: frac
   logical :: ievenodd
   logical,optional :: resetseed
   logical,optional :: scatsrc,meanint
   logical :: compute_scatsrc,compute_meanint
-  integer*8 :: iphot,nphot,cnt,cntdump
-  integer :: countwrite,index
+  integer*8 :: iphot,nphot,cnt,cntdump,countwrite
+  integer :: index
   integer :: ispec,istar,icell,illum
   integer :: iseeddum,isd,itemplate,nsrc,nstarsrc
+  integer :: perc
   logical :: mc_emergency_break
   doubleprecision:: seconds
   !$ integer :: ierr,i
@@ -2915,6 +2942,7 @@ subroutine do_monte_carlo_scattering(params,ierror,resetseed,scatsrc,meanint)
   endif
   intplt     = params%iranfreqmode
   ieventcounttot = 0
+  mc_photon_out_of_cell_count = 0
   !
   ! Flag called 'mc_emergency_break' which is switched to .false. before the big loop.
   ! If an unrecoverable error occurs, it is switched to .true..
@@ -3193,7 +3221,7 @@ subroutine do_monte_carlo_scattering(params,ierror,resetseed,scatsrc,meanint)
      !
      !$ id=OMP_get_thread_num()
      !$ nthreads=OMP_get_num_threads()
-     !$ write(stdo,*) 'Thread Nr',id,'of',nthreads,'threads in total'
+  !$ CONTINUE
      !$ iseed=-abs(iseed_start+id)
      !$OMP DO SCHEDULE(dynamic)
      !
@@ -3211,8 +3239,10 @@ subroutine do_monte_carlo_scattering(params,ierror,resetseed,scatsrc,meanint)
         !$OMP CRITICAL
         cnt   = cnt + 1
         if(mod(cnt,countwrite).eq.0) then
-           !$   write(stdo,*) 'Thread:',id,'Photon nr:',cnt
-           if(.not.mc_openmp_parallel) write(stdo,*) 'Photon nr ',iphot
+           if (cnt.gt.nphot) cnt = nphot
+           frac = dble(cnt)/dble(nphot)
+           perc = int(frac*100.d0)
+           write(stdo,'(A,"Progress ",I3,"%",1X,I15,"/",I15)',advance='no') char(13), perc, cnt, nphot
            call flush(stdo)
         endif
         !$OMP END CRITICAL
@@ -3231,13 +3261,12 @@ subroutine do_monte_carlo_scattering(params,ierror,resetseed,scatsrc,meanint)
         !
         call walk_full_path_scat(params,inu,ierrpriv)
         !       
-        ! If ierrpriv.ne.0 then an error occurred, return with non-zero error code
+        ! If ierrpriv.ne.0 then an error occurred. This is rare, so continue
+        ! but increase the error counter.
         !
         if(ierrpriv.ne.0) then
-           !$OMP CRITICAL
-           mc_emergency_break = .true.
-           !$OMP END CRITICAL
-           write(stdo,*) '!!!!!!!!!!!!!!!!!!! MC_EMERGENCY_BREAK !!!!!!!!!!!!!!!!!!!!!!'
+           !$omp atomic
+           mc_photon_out_of_cell_count = mc_photon_out_of_cell_count + 1
         endif
         !
         ! Write debugging stuff
@@ -3249,6 +3278,8 @@ subroutine do_monte_carlo_scattering(params,ierror,resetseed,scatsrc,meanint)
   enddo
   !$OMP END DO 
   !$OMP END PARALLEL
+  write(stdo,*)
+  call flush(stdo)
   !
   ! OpenMP Parallellization: destroy locks
   !
@@ -3310,6 +3341,20 @@ subroutine do_monte_carlo_scattering(params,ierror,resetseed,scatsrc,meanint)
   !open(unit=1,file='radmc_save.info')
   !write(1,*) '-'
   !close(1)
+  !
+  ! If there were out-of-cell errors, report them here
+  !
+  if(mc_photon_out_of_cell_count.gt.0) then
+     write(stdo,*) '****************************************************'
+     write(stdo,*) 'There were ',mc_photon_out_of_cell_count,' photon-out-of-cell errors'
+     if(mc_photon_out_of_cell_count.lt.1e-6*nphot) then
+        write(stdo,*) 'This number is small compared to the number of photon packages.'
+        write(stdo,*) 'so it does not seem to be serious.'
+     else
+        write(stdo,*) 'Please warn the author of RADMC-3D, C.P. Dullemond.'
+     endif
+     write(stdo,*) '****************************************************'
+  endif
   !
   ! Done...
   !
@@ -3388,6 +3433,8 @@ subroutine do_lambda_starlight_single_scattering(params,ierror,scatsrc,meanint)
   else
      stop 6658
   endif
+  !
+  mc_photon_out_of_cell_count = 0
   !
   ! Message
   !
@@ -3832,6 +3879,8 @@ subroutine do_lambda_starlight_single_scattering_simple(params,ierror,scatsrc,me
   else
      stop 6658
   endif
+  !
+  mc_photon_out_of_cell_count = 0
   !
   ! Message
   !
@@ -4990,6 +5039,10 @@ subroutine walk_full_path_bjorkmanwood(params,ierror)
      ! Move photon to next scattering/absorption event
      ! 
      call walk_cells_thermal(params,taupath,iqactive,arrived,therm,ispec,ierror)
+     !
+     ! If error, return
+     !
+     if(ierror.ne.0) return
      !
      ! If we are still in the same cell, then we have to count how
      ! often we have been in the same cell.
@@ -6162,6 +6215,10 @@ subroutine walk_full_path_scat(params,inu,ierror)
      ! 
      call walk_cells_scat(params,taupath,ener,inu,arrived,ispec,ierror)
      !
+     ! If error, return
+     !
+     if(ierror.ne.0) return
+     !
      ! If arrived at end-point or escaped to infinity, then return
      !
      if(arrived) then
@@ -6366,7 +6423,7 @@ subroutine walk_cells_thermal(params,taupath,iqactive,arrived, &
            call amrray_find_next_location_cart(ray_dsend,            &
                 ray_cart_x,ray_cart_y,ray_cart_z,                    &
                 ray_cart_dirx,ray_cart_diry,ray_cart_dirz,           &
-                ray_index,ray_indexnext,ray_ds,arrived)
+                ray_index,ray_indexnext,ray_ds,arrived,ierror)
         elseif(igrid_coord.lt.200) then
            !
            ! We use spherical coordinates
@@ -6374,7 +6431,7 @@ subroutine walk_cells_thermal(params,taupath,iqactive,arrived, &
            call amrray_find_next_location_spher(ray_dsend,           &
                 ray_cart_x,ray_cart_y,ray_cart_z,                    &
                 ray_cart_dirx,ray_cart_diry,ray_cart_dirz,           &
-                ray_index,ray_indexnext,ray_ds,arrived)
+                ray_index,ray_indexnext,ray_ds,arrived,ierror)
         else
            write(stdo,*) 'ERROR: Cylindrical coordinates not yet implemented'
            stop
@@ -6396,6 +6453,18 @@ subroutine walk_cells_thermal(params,taupath,iqactive,arrived, &
      else
         write(stdo,*) 'SORRY: Delaunay or Voronoi grids not yet implemented'
         stop
+     endif
+     !
+     ! If error, return
+     !
+     if(ierror.ne.0) then
+        !
+        ! OpenMP Parallellization: Release lock on this cell
+        !
+        !$ if(ray_index .ge. 1 )then
+        !$    call omp_unset_lock(lock(ray_index));
+        !$ endif
+        return
      endif
      !
      ! Path length
@@ -6829,7 +6898,7 @@ subroutine walk_cells_scat(params,taupath,ener,inu,arrived,ispecc,ierror)
            call amrray_find_next_location_cart(ray_dsend,            &
                 ray_cart_x,ray_cart_y,ray_cart_z,                    &
                 ray_cart_dirx,ray_cart_diry,ray_cart_dirz,           &
-                ray_index,ray_indexnext,ray_ds,arrived)
+                ray_index,ray_indexnext,ray_ds,arrived,ierror)
         elseif(igrid_coord.lt.200) then
            !
            ! We use spherical coordinates
@@ -6837,7 +6906,7 @@ subroutine walk_cells_scat(params,taupath,ener,inu,arrived,ispecc,ierror)
            call amrray_find_next_location_spher(ray_dsend,           &
                 ray_cart_x,ray_cart_y,ray_cart_z,                    &
                 ray_cart_dirx,ray_cart_diry,ray_cart_dirz,           &
-                ray_index,ray_indexnext,ray_ds,arrived)
+                ray_index,ray_indexnext,ray_ds,arrived,ierror)
         else
            write(stdo,*) 'ERROR: Cylindrical coordinates not yet implemented'
            stop
@@ -6858,6 +6927,18 @@ subroutine walk_cells_scat(params,taupath,ener,inu,arrived,ispecc,ierror)
      else
         write(stdo,*) 'SORRY: Delaunay or Voronoi grids not yet implemented'
         stop
+     endif
+     !
+     ! If error, return
+     !
+     if(ierror.ne.0) then
+        !
+        ! OpenMP Parallellization: Release lock on this cell
+        !
+        !$ if(ray_index .ge. 1 )then
+        !$    call omp_unset_lock(lock(ray_index));
+        !$ endif
+        return
      endif
      !
      ! Path length
@@ -7708,7 +7789,7 @@ end subroutine walk_cells_scat
 subroutine walk_cells_optical_depth(params,lenpath,inu,tau)
   implicit none
   type(mc_params) :: params
-  integer :: ispec,inu,idir,iddr,index
+  integer :: ispec,inu,idir,iddr,index,ierror
   doubleprecision :: lenpath
   doubleprecision :: tau,dtau
   doubleprecision :: ds,rn,scatsrc0,mnint,sprev,stot
@@ -7813,7 +7894,7 @@ subroutine walk_cells_optical_depth(params,lenpath,inu,tau)
            call amrray_find_next_location_cart(ray_dsend,            &
                 ray_cart_x,ray_cart_y,ray_cart_z,                    &
                 ray_cart_dirx,ray_cart_diry,ray_cart_dirz,           &
-                ray_index,ray_indexnext,ray_ds,arrived)
+                ray_index,ray_indexnext,ray_ds,arrived,ierror)
         elseif(igrid_coord.lt.200) then
            !
            ! We use spherical coordinates
@@ -7821,7 +7902,7 @@ subroutine walk_cells_optical_depth(params,lenpath,inu,tau)
            call amrray_find_next_location_spher(ray_dsend,           &
                 ray_cart_x,ray_cart_y,ray_cart_z,                    &
                 ray_cart_dirx,ray_cart_diry,ray_cart_dirz,           &
-                ray_index,ray_indexnext,ray_ds,arrived)
+                ray_index,ray_indexnext,ray_ds,arrived,ierror)
         else
            write(stdo,*) 'ERROR: Cylindrical coordinates not yet implemented'
            stop
@@ -7838,6 +7919,10 @@ subroutine walk_cells_optical_depth(params,lenpath,inu,tau)
         write(stdo,*) 'SORRY: Delaunay or Voronoi grids not yet implemented'
         stop
      endif
+     !
+     ! If error, return
+     !
+     if(ierror.ne.0) return
      !
      ! Path length
      ! 
@@ -8931,11 +9016,6 @@ subroutine make_emiss_dbase(ntemp,temp0,temp1)
      write(stdo,*) 'ERROR in Montecarlo Module: Could not allocate db_temp'
      stop 
   endif
-  allocate(db_logenertemp(ntemp,dust_nr_species),STAT=ierr)
-  if(ierr.ne.0) then
-     write(stdo,*) 'ERROR in Montecarlo Module: Could not allocate db_temp'
-     stop 
-  endif
   allocate(db_emiss(freq_nr,ntemp,dust_nr_species),STAT=ierr)
   if(ierr.ne.0) then
      write(stdo,*) 'ERROR in Montecarlo Module: Could not allocate db_emiss'
@@ -9001,7 +9081,6 @@ subroutine make_emiss_dbase(ntemp,temp0,temp1)
      enddo
      do itemp=1,db_ntemp
         db_enertemp(itemp,ispec) = absevfunc(db_temp(itemp))
-        db_logenertemp(itemp,ispec) = log(db_enertemp(itemp,ispec))
         do inu=1,freq_nr
            db_emiss(inu,itemp,ispec) = fnu_diff(inu)
         enddo
@@ -9074,7 +9153,6 @@ subroutine free_emiss_dbase()
   if(allocated(db_temp)) deallocate(db_temp)
   if(allocated(db_cumulnorm)) deallocate(db_cumulnorm)
   if(allocated(db_enertemp)) deallocate(db_enertemp)
-  if(allocated(db_logenertemp)) deallocate(db_logenertemp)
   if(allocated(db_emiss)) deallocate(db_emiss)
   !$OMP PARALLEL
   if(allocated(db_cumul)) deallocate(db_cumul)
@@ -9094,21 +9172,26 @@ function compute_dusttemp_energy_bd(ener,ispec)
   implicit none
   !
   integer :: ispec
-  doubleprecision :: ener,compute_dusttemp_energy_bd,logener
+  doubleprecision :: ener,compute_dusttemp_energy_bd
   !
   integer :: itemp
   doubleprecision :: eps,temp
+  doubleprecision, parameter :: eps_tol=64.d0*epsilon(1.d0)
   !
-  ! First find the energy in the grid
+  ! Reject invalid energies before searching the monotonic table
   !
-  ! Linear method:
+  if(.not.(ener.ge.0.d0)) then
+     write(stdo,*) 'Dust-temperature interpolation failure: invalid energy'
+     write(stdo,*) 'ispec, ener = ',ispec,ener
+     stop 9911
+  endif
   !
-  !!!!!! call hunt(db_enertemp(1,ispec),db_ntemp,ener,itemp)
+  ! Find the interval in the same linear-energy table used below. Searching
+  ! its logarithm can collapse adjacent floating-point energies onto one
+  ! value and select the wrong side of an exact table boundary.
   !
-  ! Logarithmic method:
-  !
-  logener = log(ener)
-  call hunt(db_logenertemp(1,ispec),db_ntemp,logener,itemp)
+  itemp = 0
+  call hunt(db_enertemp(1,ispec),db_ntemp,ener,itemp)
   !
   ! Check if we are in range
   !
@@ -9121,7 +9204,13 @@ function compute_dusttemp_energy_bd(ener,ispec)
      ! Temperature presumably below lowest temp in dbase
      !
      eps = ener/db_enertemp(1,ispec)
-     if(eps.gt.1.d0) stop 9911
+     if((eps.gt.1.d0+eps_tol).or.(eps.lt.-eps_tol)) then
+        write(stdo,*) 'Dust-temperature interpolation failure below table'
+        write(stdo,*) 'ispec, ener, energy_min, eps = ',                  &
+                      ispec,ener,db_enertemp(1,ispec),eps
+        stop 9911
+     endif
+     eps = min(1.d0,max(0.d0,eps))
      temp = eps*db_temp(1)
   else
      !
@@ -9129,7 +9218,14 @@ function compute_dusttemp_energy_bd(ener,ispec)
      !
      eps = (ener-db_enertemp(itemp,ispec)) /                            &
            (db_enertemp(itemp+1,ispec) - db_enertemp(itemp,ispec))
-     if((eps.gt.1.d0).or.(eps.lt.0.d0)) stop 9912
+     if((eps.gt.1.d0+eps_tol).or.(eps.lt.-eps_tol)) then
+        write(stdo,*) 'Dust-temperature interpolation failure in table'
+        write(stdo,*) 'ispec, itemp, ener, energy_lo, energy_hi, eps = ', &
+                      ispec,itemp,ener,db_enertemp(itemp,ispec),          &
+                      db_enertemp(itemp+1,ispec),eps
+        stop 9912
+     endif
+     eps = min(1.d0,max(0.d0,eps))
      temp = (1.d0-eps)*db_temp(itemp) + eps*db_temp(itemp+1)
   endif
   !

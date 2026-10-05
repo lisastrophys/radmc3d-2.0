@@ -1,4 +1,5 @@
 module rtglobal_module
+  !$ use omp_lib
   use constants_module
   use amr_module
   !
@@ -32,7 +33,7 @@ module rtglobal_module
   !                                         ! since last update exceeds enthres
      integer :: irestart                    ! If set, then the simulations is
   !                                         ! restarted from a safety backup.
-     integer :: cntdump                     ! Make safety backup every cntdump
+     integer*8 :: cntdump                   ! Make safety backup every cntdump
   !                                         ! photons.
      integer :: ntemp                       ! Number of bins of temperature
   !                                         ! for precalculated dust thermal
@@ -75,7 +76,7 @@ module rtglobal_module
   !                                         !    to a file.
      integer :: debug_write_path            ! =1 Write the path of the photon
   !   integer :: debug_write_eventcounts     ! =1 Write for each photon nr of events
-     integer :: countwrite                  ! Each countwrite, write to standard output
+     integer*8 :: countwrite                ! Each countwrite, write to standard output
   !   integer :: incl_scatsrc_mctherm        ! Do we make scattering src while doing therm MC?
      logical :: optimized_motion            ! For high optical deth cells
      double precision :: optim_dtau         ! For high optical deth cells
@@ -425,6 +426,9 @@ module rtglobal_module
   !$OMP THREADPRIVATE(ray_cart_svec,ray_prev_x,ray_prev_y,ray_prev_z)
   !$OMP THREADPRIVATE(ray_dsend,ray_ds,ray_index,ray_indexnext)
   !$OMP THREADPRIVATE(ray_inu,ray_ns,ray_nsmax)
+  !
+  !$OMP THREADPRIVATE(lines_ray_levpop,lines_ray_nrdens,lines_ray_temp)
+  !$OMP THREADPRIVATE(lines_ray_turb,lines_ray_doppler,lines_ray_lorentz_delta)
   !
 contains
 
@@ -832,12 +836,14 @@ subroutine rtglobal_cleanup
   !
   if(allocated(lines_levelpop)) deallocate(lines_levelpop)
   if(allocated(gasvelocity)) deallocate(gasvelocity)
+  !$OMP PARALLEL
   if(allocated(lines_ray_levpop)) deallocate(lines_ray_levpop)
   if(allocated(lines_ray_nrdens)) deallocate(lines_ray_nrdens)
   if(allocated(lines_ray_temp)) deallocate(lines_ray_temp)
   if(allocated(lines_ray_turb)) deallocate(lines_ray_turb)
   if(allocated(lines_ray_doppler)) deallocate(lines_ray_doppler)
   if(allocated(lines_ray_lorentz_delta)) deallocate(lines_ray_lorentz_delta)
+  !$OMP END PARALLEL
   if(allocated(lines_microturb)) deallocate(lines_microturb)
   if(allocated(lines_escprob_lengthscale)) deallocate(lines_escprob_lengthscale)
   if(allocated(gas_chemspec_numberdens)) deallocate(gas_chemspec_numberdens)

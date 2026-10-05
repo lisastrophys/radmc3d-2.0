@@ -1,22 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tips, tricks and problem hunting &mdash; radmc3d 2.0 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=60dbed4a"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -29,11 +29,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> radmc3d
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            radmc3d
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -83,8 +87,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Tips, tricks and problem hunting</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Tips, tricks and problem hunting</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/tipsandtricks.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -95,9 +99,9 @@
            <div itemprop="articleBody">
              
   <section id="tips-tricks-and-problem-hunting">
-<span id="chap-problem-hunting"></span><h1>Tips, tricks and problem hunting<a class="headerlink" href="#tips-tricks-and-problem-hunting" title="Permalink to this heading"></a></h1>
+<span id="chap-problem-hunting"></span><h1>Tips, tricks and problem hunting<a class="headerlink" href="#tips-tricks-and-problem-hunting" title="Link to this heading"></a></h1>
 <section id="tips-and-tricks">
-<h2>Tips and tricks<a class="headerlink" href="#tips-and-tricks" title="Permalink to this heading"></a></h2>
+<h2>Tips and tricks<a class="headerlink" href="#tips-and-tricks" title="Link to this heading"></a></h2>
 <p>RADMC-3D is a large software package, and the user will in all
 likelihood not understand all its internal workings. In this section we will
 discuss some issues that might be useful to know when you do modeling.</p>
@@ -137,7 +141,7 @@ starts, which saves time. But that may require much memory.</p>
 </ul>
 </section>
 <section id="bug-hunting">
-<h2>Bug hunting<a class="headerlink" href="#bug-hunting" title="Permalink to this heading"></a></h2>
+<h2>Bug hunting<a class="headerlink" href="#bug-hunting" title="Link to this heading"></a></h2>
 <p>Although we of course hope that <code class="docutils literal notranslate"><span class="pre">radmc3d</span></code> will not run into
 troubles or crash, it is nevertheless possible that it will. There are
 several ways by which one can hunt for bugs, and we list here a few
@@ -155,7 +159,7 @@ set to 1. This will do some on-the-fly checks in the code.</p></li>
 </ul>
 </section>
 <section id="some-tips-for-avoiding-troubles-and-for-making-good-models">
-<h2>Some tips for avoiding troubles and for making good models<a class="headerlink" href="#some-tips-for-avoiding-troubles-and-for-making-good-models" title="Permalink to this heading"></a></h2>
+<h2>Some tips for avoiding troubles and for making good models<a class="headerlink" href="#some-tips-for-avoiding-troubles-and-for-making-good-models" title="Link to this heading"></a></h2>
 <p>Here is a set of tips that we recommend you to follow, in order to avoid
 troubles with the code and to make sure that the models you make are OK.
 This list is far from complete! It will be updated as we continue to
@@ -199,7 +203,7 @@ in.</p></li>
 </ol>
 </section>
 <section id="careful-things-that-might-go-wrong">
-<span id="sec-things-going-wrong"></span><h2>Careful: Things that might go wrong<a class="headerlink" href="#careful-things-that-might-go-wrong" title="Permalink to this heading"></a></h2>
+<span id="sec-things-going-wrong"></span><h2>Careful: Things that might go wrong<a class="headerlink" href="#careful-things-that-might-go-wrong" title="Link to this heading"></a></h2>
 <p>In principle RADMC-3D should be fine-tuned such that it produced reliable
 results in most circumstances. But radiative transfer modeling, like all
 kinds of modeling, is not an entirely trivial issue. Extreme circumstances
@@ -266,7 +270,7 @@ higher optical depth, making the inner cells optically thick with roughly
 emission near the midplane is strongly reduced.  The reason for that is
 that the scattering source function, due to photons scattering at the
 inner 10% of the inner cell, is diluted over the entire cell, making the
-scattered light brighness 10x lower than it should be.</span><a class="headerlink" href="#id1" title="Permalink to this image"></a></p>
+scattered light brighness 10x lower than it should be.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 </li>
@@ -294,7 +298,7 @@ outside of the refined part of the grid). This leads to wrong results.</p>
 </ol>
 </section>
 <section id="common-technical-problems-and-how-to-fix-them">
-<h2>Common technical problems and how to fix them<a class="headerlink" href="#common-technical-problems-and-how-to-fix-them" title="Permalink to this heading"></a></h2>
+<h2>Common technical problems and how to fix them<a class="headerlink" href="#common-technical-problems-and-how-to-fix-them" title="Link to this heading"></a></h2>
 <p>When using a complex code such as RADMC-3D there are many ways you might
 encounter a problem. Here is a list of common issues and tips how to fix them.</p>
 <ol class="arabic">

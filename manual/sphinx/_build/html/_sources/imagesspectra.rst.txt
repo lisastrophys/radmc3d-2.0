@@ -1160,7 +1160,7 @@ is shown as a 'normal' image in Fig. :numref:`fig-rect-circ-image-2d`.
 With a bit of "getting used to" one will find that the circular images will
 reveal a lot of information.
 
-*Note:* Fig. :numfig:`fig-circ-image-2d` shows an effect similar to what is
+*Note:* Fig. :numref:`fig-circ-image-2d` shows an effect similar to what is
 shown in Fig. :numref:`fig-innerrim-lowres`. This indicates that near the inner
 radius of the model, the radial grid is under-resolved in example model
 ``examples/run_spher2d_1/``: see Section :ref:`sec-things-going-wrong`, point
@@ -1502,3 +1502,36 @@ actual value of the initial seed in the ``radmc3d.inp`` file by adding a line ::
 file. Note also that if your movie goes through different wavelengths, the
 resetseed will likely not help fixing the noisiness, because the paths of
 photons will change for different wavelengths, even with the same initial seed.
+
+.. _sec-omp-camera:
+
+OpenMP parallelized images and spectra / SEDs
+=============================================
+
+Thanks to Patrick Sheehan, the camera module of RADMC-3D is now also
+OpenMP-parallellized (a big thanks to Patrick!).
+
+The default value for the number of threads in the parallel version is set to
+one, so that the program is identical with the serial version.
+The user can change the value by either typing
+``setthreads <nr>``, where ``<nr>`` is the number of requested threads (integer
+value) in the command line or by adding a corresponding line to the
+``radmc3d.inp`` file. If the chosen number of threads is larger than the
+available number of processor cores, the user is asked to reduce it.
+
+For example, you can ask ``radmc3d`` to do the parallelized image rendering
+for you by typing in a shell::
+
+  radmc3d image lambda 100 theta 60 phi 30 setthreads 4
+
+or by adding the following keyword to the ``radmc3d.inp`` file::
+
+  setthreads = 4
+
+which means that four threads are used for the image computation.
+
+Make sure that you have included the ``-fopenmp`` keyword in the ``Makefile``
+and have compiled the whole ``radmc3d`` source code with this additional command
+before using the OpenMP parallelized thermal Monte Carlo version (cf. Section
+:ref:`sec-makeing`).
+

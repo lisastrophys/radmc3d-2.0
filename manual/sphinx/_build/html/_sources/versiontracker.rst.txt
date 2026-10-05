@@ -416,4 +416,5 @@ This version overview is very rough, and has only been started as of version
     because the ``pick_randomfreq_db()`` subroutine uses the array
     ``db_cumul(:)`` as thread private, but without having it declared
     as such. This led to interference between threads. This is now
-    fixed.
+    fixed.  * Patrick Sheehan implemented OpenMP-parallellization for the
+    image and spectrum rendering.

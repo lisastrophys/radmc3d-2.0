@@ -1,22 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dust continuum radiative transfer &mdash; radmc3d 2.0 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=60dbed4a"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -29,11 +29,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> radmc3d
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            radmc3d
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -132,8 +136,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Dust continuum radiative transfer</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Dust continuum radiative transfer</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/dustradtrans.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -144,7 +148,7 @@
            <div itemprop="articleBody">
              
   <section id="dust-continuum-radiative-transfer">
-<span id="chap-dust-transfer"></span><h1>Dust continuum radiative transfer<a class="headerlink" href="#dust-continuum-radiative-transfer" title="Permalink to this heading"></a></h1>
+<span id="chap-dust-transfer"></span><h1>Dust continuum radiative transfer<a class="headerlink" href="#dust-continuum-radiative-transfer" title="Link to this heading"></a></h1>
 <p>Many of the things related to dust continuum radiative transfer have
 already been said in the previous chapters. But here we combine these
 things, and expand with more in-depth information.</p>
@@ -165,7 +169,7 @@ This is described in Section <a class="reference internal" href="#sec-dust-monoc
 to help estimating the {em gas} temperature for the line radiative transfer.
 See Chapter <a class="reference internal" href="lineradtrans.html#chap-line-transfer"><span class="std std-ref">Line radiative transfer</span></a> for more on line transfer.</p>
 <section id="the-thermal-monte-carlo-simulation-computing-the-dust-temperature">
-<span id="sec-dust-thermal-monte-carlo"></span><h2>The thermal Monte Carlo simulation: computing the dust temperature<a class="headerlink" href="#the-thermal-monte-carlo-simulation-computing-the-dust-temperature" title="Permalink to this heading"></a></h2>
+<span id="sec-dust-thermal-monte-carlo"></span><h2>The thermal Monte Carlo simulation: computing the dust temperature<a class="headerlink" href="#the-thermal-monte-carlo-simulation-computing-the-dust-temperature" title="Link to this heading"></a></h2>
 <p>RADMC-3D can compute the dust temperature using the Monte Carlo method of
 Bjorkman &amp; Wood (2001, ApJ 554, 615) with various improvements such as the
 continuous absorption method of Lucy (1999, A&amp;A 344, 282). Once a model is
@@ -240,7 +244,7 @@ done by adding a line</p>
 </div>
 <p>(where -5415 is to be replaced by the value you want) to the <code class="docutils literal notranslate"><span class="pre">radmc3d.inp</span></code> file.</p>
 <section id="modified-random-walk-method-for-high-optical-depths">
-<span id="sec-modrandwalk"></span><h3>Modified Random Walk method for high optical depths<a class="headerlink" href="#modified-random-walk-method-for-high-optical-depths" title="Permalink to this heading"></a></h3>
+<span id="sec-modrandwalk"></span><h3>Modified Random Walk method for high optical depths<a class="headerlink" href="#modified-random-walk-method-for-high-optical-depths" title="Link to this heading"></a></h3>
 <p>As you will soon find out: very optically thick models make the RADMC-3D thermal
 Monte Carlo simulations to be slow. This is because in the thermal Monte Carlo
 method a photon package is never destroyed unless it leaves the system. A photon
@@ -295,7 +299,7 @@ the code slower.</p>
 </section>
 </section>
 <section id="making-seds-spectra-images-for-dust-continuum">
-<span id="sec-dust-ray-tracing"></span><h2>Making SEDs, spectra, images for dust continuum<a class="headerlink" href="#making-seds-spectra-images-for-dust-continuum" title="Permalink to this heading"></a></h2>
+<span id="sec-dust-ray-tracing"></span><h2>Making SEDs, spectra, images for dust continuum<a class="headerlink" href="#making-seds-spectra-images-for-dust-continuum" title="Link to this heading"></a></h2>
 <p>You can use RADMC-3D for computing spectra and images in dust continuum
 emission. This is described in detail in Chapter
 <a class="reference internal" href="imagesspectra.html#chap-images-spectra"><span class="std std-ref">Making images and spectra</span></a>. RADMC-3D needs to know not only the dust spatial
@@ -347,7 +351,7 @@ lead, however, to slight spectral noise, because the random photon paths are
 different for each wavelength.  See Section <a class="reference internal" href="#sec-scattering"><span class="std std-ref">More about scattering of photons off dust grains</span></a> for details.</p>
 </section>
 <section id="openmp-parallelized-monte-carlo">
-<span id="sec-omp-mc"></span><h2>OpenMP parallelized Monte Carlo<a class="headerlink" href="#openmp-parallelized-monte-carlo" title="Permalink to this heading"></a></h2>
+<span id="sec-omp-mc"></span><h2>OpenMP parallelized Monte Carlo<a class="headerlink" href="#openmp-parallelized-monte-carlo" title="Link to this heading"></a></h2>
 <p>Depending on the model properties and the number of photon packages used in
 the simulation the Monte Carlo calculation (in particular the thermal Monte
 Carlo, but under some conditions also the scattering Monte Carlo) can be a
@@ -377,7 +381,8 @@ Carlo run for you by typing in a shell:</p>
 </pre></div>
 </div>
 <p>which means that four threads are used for the thermal Monte Carlo computation.</p>
-<p>For the image or spectrum you can do the same: just add <code class="docutils literal notranslate"><span class="pre">setthreads</span> <span class="pre">4</span></code> or so
+<p>For the Monte Carlo source function calculation during the production of
+an image or spectrum you can do the same: just add <code class="docutils literal notranslate"><span class="pre">setthreads</span> <span class="pre">4</span></code> or so
 on the command line or put <code class="docutils literal notranslate"><span class="pre">setthreads</span> <span class="pre">=</span> <span class="pre">4</span></code> into the <code class="docutils literal notranslate"><span class="pre">radmc3d.inp</span></code> file.</p>
 <p>Make sure that you have included the <code class="docutils literal notranslate"><span class="pre">-fopenmp</span></code> keyword in the <code class="docutils literal notranslate"><span class="pre">Makefile</span></code>
 and have compiled the whole <code class="docutils literal notranslate"><span class="pre">radmc3d</span></code> source code with this additional command
@@ -385,7 +390,7 @@ before using the OpenMP parallelized thermal Monte Carlo version (cf. Section
 <a class="reference internal" href="installation.html#sec-makeing"><span class="std std-ref">Compiling the code with ‘make’</span></a>).</p>
 </section>
 <section id="overview-of-input-data-for-dust-radiative-transfer">
-<h2>Overview of input data for dust radiative transfer<a class="headerlink" href="#overview-of-input-data-for-dust-radiative-transfer" title="Permalink to this heading"></a></h2>
+<h2>Overview of input data for dust radiative transfer<a class="headerlink" href="#overview-of-input-data-for-dust-radiative-transfer" title="Link to this heading"></a></h2>
 <p>In order to perform any of the actions described in Sections
 <a class="reference internal" href="#sec-dust-thermal-monte-carlo"><span class="std std-ref">The thermal Monte Carlo simulation: computing the dust temperature</span></a>, <a class="reference internal" href="#sec-dust-monochromatic-monte-carlo"><span class="std std-ref">Special-purpose feature: Computing the local radiation field</span></a>
 or <a class="reference internal" href="#sec-dust-ray-tracing"><span class="std std-ref">Making SEDs, spectra, images for dust continuum</span></a>, you must give RADMC-3D the following
@@ -419,7 +424,7 @@ want to compute the radiation field inside the model by calling <code class="doc
 be asked about it by RADMC-3D.</p>
 </section>
 <section id="special-purpose-feature-computing-the-local-radiation-field">
-<span id="sec-dust-monochromatic-monte-carlo"></span><h2>Special-purpose feature: Computing the local radiation field<a class="headerlink" href="#special-purpose-feature-computing-the-local-radiation-field" title="Permalink to this heading"></a></h2>
+<span id="sec-dust-monochromatic-monte-carlo"></span><h2>Special-purpose feature: Computing the local radiation field<a class="headerlink" href="#special-purpose-feature-computing-the-local-radiation-field" title="Link to this heading"></a></h2>
 <p>If you wish to use RADMC-3D for computing the radiation field <em>inside</em>
 the model, for instance for computing photochemical rates in a chemical model,
 then RADMC-3D can do so by calling RADMC-3D in the following way:</p>
@@ -489,7 +494,7 @@ this value in two ways:</p>
 </ul>
 </section>
 <section id="more-about-scattering-of-photons-off-dust-grains">
-<span id="sec-scattering"></span><h2>More about scattering of photons off dust grains<a class="headerlink" href="#more-about-scattering-of-photons-off-dust-grains" title="Permalink to this heading"></a></h2>
+<span id="sec-scattering"></span><h2>More about scattering of photons off dust grains<a class="headerlink" href="#more-about-scattering-of-photons-off-dust-grains" title="Link to this heading"></a></h2>
 <p>Photons can not only be absorbed and re-emitted by dust grains: They can also be
 scattered. Scattering does nothing else than change the direction of propagation
 of a photon, and in case polarization is included, its Stokes
@@ -500,7 +505,7 @@ transfer is combined with line radiative transfer, see chapter
 <a class="reference internal" href="lineradtrans.html#chap-line-transfer"><span class="std std-ref">Line radiative transfer</span></a>), but this subtle effect is not treated in
 RADMC-3D. For RADMC-3D scattering is just the changing of direction of a photon.</p>
 <section id="five-modes-of-treating-scattering">
-<span id="sec-modes-of-scattering"></span><h3>Five modes of treating scattering<a class="headerlink" href="#five-modes-of-treating-scattering" title="Permalink to this heading"></a></h3>
+<span id="sec-modes-of-scattering"></span><h3>Five modes of treating scattering<a class="headerlink" href="#five-modes-of-treating-scattering" title="Link to this heading"></a></h3>
 <p>RADMC-3D has five levels of realism of treatment of scattering, starting
 with <code class="docutils literal notranslate"><span class="pre">scattering_mode=1</span></code> (simplest) to <code class="docutils literal notranslate"><span class="pre">scattering_mode=5</span></code> (most realistic):</p>
 <ul>
@@ -595,7 +600,7 @@ scope of RADMC-3D.</p>
 </ul>
 </section>
 <section id="scattering-phase-functions">
-<span id="sec-scat-phasefunc"></span><h3>Scattering phase functions<a class="headerlink" href="#scattering-phase-functions" title="Permalink to this heading"></a></h3>
+<span id="sec-scat-phasefunc"></span><h3>Scattering phase functions<a class="headerlink" href="#scattering-phase-functions" title="Link to this heading"></a></h3>
 <p>As mentioned above, for the different <code class="docutils literal notranslate"><span class="pre">scattering_mode</span></code> settings
 you have different levels of realism of treating scattering.</p>
 <p>The transfer equation along each ray, ignoring polarization for now, is:</p>
@@ -685,7 +690,7 @@ polarization state of the input radiation. See Section
 </section>
 </section>
 <section id="scattering-of-photons-in-the-thermal-monte-carlo-run">
-<span id="sec-scat-in-therm-mc"></span><h2>Scattering of photons in the Thermal Monte Carlo run<a class="headerlink" href="#scattering-of-photons-in-the-thermal-monte-carlo-run" title="Permalink to this heading"></a></h2>
+<span id="sec-scat-in-therm-mc"></span><h2>Scattering of photons in the Thermal Monte Carlo run<a class="headerlink" href="#scattering-of-photons-in-the-thermal-monte-carlo-run" title="Link to this heading"></a></h2>
 <p>So how is scattering treated in practice? In the thermal Monte Carlo model
 (Section <a class="reference internal" href="#sec-dust-thermal-monte-carlo"><span class="std std-ref">The thermal Monte Carlo simulation: computing the dust temperature</span></a>) the scattering has only one
 effect: it changes the direction of propagation of the photon packages whenever
@@ -704,7 +709,7 @@ principle, have an effect on the dust temperatures that result from the thermal
 Monte Carlo computation. This effect is, however, rather small in practice.</p>
 </section>
 <section id="scattering-of-photons-in-the-monochromatic-monte-carlo-run">
-<span id="sec-scat-in-mono-mc"></span><h2>Scattering of photons in the Monochromatic Monte Carlo run<a class="headerlink" href="#scattering-of-photons-in-the-monochromatic-monte-carlo-run" title="Permalink to this heading"></a></h2>
+<span id="sec-scat-in-mono-mc"></span><h2>Scattering of photons in the Monochromatic Monte Carlo run<a class="headerlink" href="#scattering-of-photons-in-the-monochromatic-monte-carlo-run" title="Link to this heading"></a></h2>
 <p>For the monochromatic Monte Carlo calculation for computing the mean intensity
 radiation field (Section <a class="reference internal" href="#sec-dust-monochromatic-monte-carlo"><span class="std std-ref">Special-purpose feature: Computing the local radiation field</span></a>) the
 scattering has the same effect as for the thermal Monte Carlo model: it changes
@@ -717,7 +722,7 @@ simply to change the direction of motion of the radiation field, but for the
 rest nothing differs to the case without scattering. Also here the small effects
 caused by polarized scattering apply, like in the thermal Monte Carlo case.</p>
 <section id="scattered-light-in-images-and-spectra-the-scattering-monte-carlo-computation">
-<span id="sec-scat-monte-carlo"></span><h3>Scattered light in images and spectra: The ‘Scattering Monte Carlo’ computation<a class="headerlink" href="#scattered-light-in-images-and-spectra-the-scattering-monte-carlo-computation" title="Permalink to this heading"></a></h3>
+<span id="sec-scat-monte-carlo"></span><h3>Scattered light in images and spectra: The ‘Scattering Monte Carlo’ computation<a class="headerlink" href="#scattered-light-in-images-and-spectra-the-scattering-monte-carlo-computation" title="Link to this heading"></a></h3>
 <p>For making images and spectra with the ray-tracing capabilities of RADMC-3D (see
 Section <a class="reference internal" href="#sec-dust-ray-tracing"><span class="std std-ref">Making SEDs, spectra, images for dust continuum</span></a> and Chapter <a class="reference internal" href="imagesspectra.html#chap-images-spectra"><span class="std std-ref">Making images and spectra</span></a>) the
 role of scattering is a much more complex one than in the thermal and
@@ -809,7 +814,8 @@ If you want to be on the safe side, then set <code class="docutils literal notra
 </li>
 </ul>
 <figure class="align-default" id="id1">
-<span id="fig-polscat"></span><a class="reference internal image-reference" href="_images/polscat.png"><img alt="_images/polscat.png" src="_images/polscat.png" style="width: 50%;" /></a>
+<span id="fig-polscat"></span><a class="reference internal image-reference" href="_images/polscat.png"><img alt="_images/polscat.png" src="_images/polscat.png" style="width: 50%;" />
+</a>
 <figcaption>
 <p><span class="caption-number">Fig. 5 </span><span class="caption-text">The effect of <code class="docutils literal notranslate"><span class="pre">nphot_scat</span></code> on the image quality when the image is dominated
 by scattered light. The images show the result of model
@@ -818,7 +824,7 @@ polarized scattering with the full scattering phase function and scattering
 matrix is used. See Section <a class="reference internal" href="#sec-polarized-scattering"><span class="std std-ref">Polarization, Stokes vectors and full phase-functions</span></a> about the
 scattering matrices for polarized scattering. See Section
 <a class="reference internal" href="#sec-single-multiple-scattering"><span class="std std-ref">Single-scattering vs. multiple-scattering</span></a> for a discussion about the ‘scratches’
-seen in the top two panels.</span><a class="headerlink" href="#id1" title="Permalink to this image"></a></p>
+seen in the top two panels.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p><em>WARNING:</em> At wavelengths where the dominant source of photons is thermal dust
@@ -848,7 +854,7 @@ done by adding a line</p>
 <p>(where -5415 is to be replaced by the value you want) to the <code class="docutils literal notranslate"><span class="pre">radmc3d.inp</span></code> file.</p>
 </section>
 <section id="single-scattering-vs-multiple-scattering">
-<span id="sec-single-multiple-scattering"></span><h3>Single-scattering vs. multiple-scattering<a class="headerlink" href="#single-scattering-vs-multiple-scattering" title="Permalink to this heading"></a></h3>
+<span id="sec-single-multiple-scattering"></span><h3>Single-scattering vs. multiple-scattering<a class="headerlink" href="#single-scattering-vs-multiple-scattering" title="Link to this heading"></a></h3>
 <p>If scattering is included in the images and spectra, the Monte Carlo run
 computes the full multiple-scattering problem. Photon packages are followed as
 they scatter and change their direction (possibly many times) until they escape
@@ -908,7 +914,7 @@ multiple-scattering contribution is compared to single scattering. But of
 course, it is always safer to simply increase <code class="docutils literal notranslate"><span class="pre">nphot_scat</span></code> and patiently wait
 until the Monte Carlo run is finished.</p>
 <section id="tip-analyzing-the-effect-of-multiple-scattering-using-selectscat">
-<span id="sec-select-scattering"></span><h4>Tip: Analyzing the effect of multiple scattering using <code class="docutils literal notranslate"><span class="pre">selectscat</span></code><a class="headerlink" href="#tip-analyzing-the-effect-of-multiple-scattering-using-selectscat" title="Permalink to this heading"></a></h4>
+<span id="sec-select-scattering"></span><h4>Tip: Analyzing the effect of multiple scattering using <code class="docutils literal notranslate"><span class="pre">selectscat</span></code><a class="headerlink" href="#tip-analyzing-the-effect-of-multiple-scattering-using-selectscat" title="Link to this heading"></a></h4>
 <p>If you are interested in analyzing the role that multiple scattering plays in your
 image (as opposed to single scattering), you can ask RADMC-3D to compute the
 scattering source function only for, for instance, the second scattering:</p>
@@ -938,7 +944,7 @@ Monte Carlo for computing the mean intensity field
 </section>
 </section>
 <section id="simplified-single-scattering-mode-spherical-coordinates">
-<span id="sec-simple-single-scattering"></span><h3>Simplified single-scattering mode (spherical coordinates)<a class="headerlink" href="#simplified-single-scattering-mode-spherical-coordinates" title="Permalink to this heading"></a></h3>
+<span id="sec-simple-single-scattering"></span><h3>Simplified single-scattering mode (spherical coordinates)<a class="headerlink" href="#simplified-single-scattering-mode-spherical-coordinates" title="Link to this heading"></a></h3>
 <p>If you are sure that multiple scattering is rare (low albedo and/or low optical
 depth), then you may be interested in using a simpler (non-Monte-Carlo) mode for
 including scattering in your images.  But please first read Section
@@ -962,7 +968,7 @@ mode. However, if the difference is minor, then the single scattering
 approximation is reasonable.</p>
 </section>
 <section id="warning-when-using-an-isotropic-scattering">
-<h3>Warning when using an-isotropic scattering<a class="headerlink" href="#warning-when-using-an-isotropic-scattering" title="Permalink to this heading"></a></h3>
+<h3>Warning when using an-isotropic scattering<a class="headerlink" href="#warning-when-using-an-isotropic-scattering" title="Link to this heading"></a></h3>
 <p>An important issue with anisotropic scattering is that if the phase function is
 very forward-peaked, then you may get problems with the <em>spatial</em> resolution
 of your model: it could then happen that one grid cell may be too much to the
@@ -984,7 +990,7 @@ you concentrate in your modeling very much on the angular dependence of the
 scattering.</p>
 </section>
 <section id="for-experts-some-more-background-on-scattering">
-<span id="sec-scat-background"></span><h3>For experts: Some more background on scattering<a class="headerlink" href="#for-experts-some-more-background-on-scattering" title="Permalink to this heading"></a></h3>
+<span id="sec-scat-background"></span><h3>For experts: Some more background on scattering<a class="headerlink" href="#for-experts-some-more-background-on-scattering" title="Link to this heading"></a></h3>
 <p>The inclusion of the scattering source function in the images and spectra is a
 non-trivial task for RADMC-3D because of memory constraints. If we would have
 infinite random access memory, then the inclusion of scattering in the images
@@ -1036,7 +1042,7 @@ run, but for the moment this is not yet activated.  end{itemize}</p>
 </section>
 </section>
 <section id="polarization-stokes-vectors-and-full-phase-functions">
-<span id="sec-polarized-scattering"></span><h2>Polarization, Stokes vectors and full phase-functions<a class="headerlink" href="#polarization-stokes-vectors-and-full-phase-functions" title="Permalink to this heading"></a></h2>
+<span id="sec-polarized-scattering"></span><h2>Polarization, Stokes vectors and full phase-functions<a class="headerlink" href="#polarization-stokes-vectors-and-full-phase-functions" title="Link to this heading"></a></h2>
 <p>The module in RADMC-3D that deals with polarization
 (<code class="docutils literal notranslate"><span class="pre">polarization_module.f90</span></code>) is based on code developed by Michiel Min for his
 MCMAX code, and has been used and modified for use in RADMC-3D with his
@@ -1136,7 +1142,7 @@ step by step.</p>
 </li>
 </ol>
 <section id="definitions-and-conventions-for-stokes-vectors">
-<span id="sec-definitions-stokes"></span><h3>Definitions and conventions for Stokes vectors<a class="headerlink" href="#definitions-and-conventions-for-stokes-vectors" title="Permalink to this heading"></a></h3>
+<span id="sec-definitions-stokes"></span><h3>Definitions and conventions for Stokes vectors<a class="headerlink" href="#definitions-and-conventions-for-stokes-vectors" title="Link to this heading"></a></h3>
 <p>There are different conventions for how to set up the coordinate system and
 define the Stokes vectors. Our definition follows the IAU 1974 definition as
 described in Hamaker &amp; Bregman (1996) A&amp;AS 117, pp.161.</p>
@@ -1177,7 +1183,8 @@ lags the</em> <span class="math notranslate nohighlight">\(x'\)</span> <em>compo
 form a left-handed screw. The Stokes</em> <span class="math notranslate nohighlight">\(V\)</span> <em>is positive for
 right-handed circular polarization.</em></p>
 <figure class="align-default" id="id2">
-<span id="fig-stokes-definition"></span><a class="reference internal image-reference" href="_images/stokes_and_angles_iaudef.png"><img alt="_images/stokes_and_angles_iaudef.png" src="_images/stokes_and_angles_iaudef.png" style="width: 90%;" /></a>
+<span id="fig-stokes-definition"></span><a class="reference internal image-reference" href="_images/stokes_and_angles_iaudef.png"><img alt="_images/stokes_and_angles_iaudef.png" src="_images/stokes_and_angles_iaudef.png" style="width: 90%;" />
+</a>
 <figcaption>
 <p><span class="caption-number">Fig. 6 </span><span class="caption-text">The definition of the Stokes parameters used in RADMC-3D, which is consistent
 with the IAU 1974 definitions (see Hamaker &amp; Bregman (1996) A&amp;AS 117,
@@ -1190,7 +1197,7 @@ third panel (<span class="math notranslate nohighlight">\(U=+I\)</span>) ‘diag
 fourth panel (<span class="math notranslate nohighlight">\(V=+I\)</span>) ‘right-handed circularly polarized’. In the
 images produced by RADMC-3D (<code class="docutils literal notranslate"><span class="pre">image.out</span></code>, see Section <a class="reference internal" href="inputoutputfiles.html#sec-image-out"><span class="std std-ref">OUTPUT: image.out or image_****.out</span></a>
 and Fig. <a class="reference internal" href="imagesspectra.html#fig-cameraorient"><span class="std std-numref">Fig. 9</span></a>) the <span class="math notranslate nohighlight">\(x'\)</span> direction is the horizontal
-direction and the <span class="math notranslate nohighlight">\(y'\)</span> direction is the vertical direction.</span><a class="headerlink" href="#id2" title="Permalink to this image"></a></p>
+direction and the <span class="math notranslate nohighlight">\(y'\)</span> direction is the vertical direction.</span><a class="headerlink" href="#id2" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>We can put these definitions into the standard formulae:</p>
@@ -1254,7 +1261,7 @@ V &amp;= i\langle E_{x'}E_{y'}^{*} - E_{y'}E_{x'}^{*}  \rangle
 \end{split}\end{split}\]</div>
 </section>
 <section id="our-conventions-compared-to-other-literature">
-<span id="sec-stokes-convent-differences"></span><h3>Our conventions compared to other literature<a class="headerlink" href="#our-conventions-compared-to-other-literature" title="Permalink to this heading"></a></h3>
+<span id="sec-stokes-convent-differences"></span><h3>Our conventions compared to other literature<a class="headerlink" href="#our-conventions-compared-to-other-literature" title="Link to this heading"></a></h3>
 <p>The IAU 1974 definition is different from the definitions used in the
 Planck mission, for instance. So be careful. There is something said about
 this on the website of the healpix software
@@ -1320,7 +1327,7 @@ if you obtain an image from RADMC-3D and all the pixels in the image have
 the image.</p>
 </section>
 <section id="defining-orientation-for-non-observed-radiation">
-<span id="sec-orientation-vector-stokes"></span><h3>Defining orientation for non-observed radiation<a class="headerlink" href="#defining-orientation-for-non-observed-radiation" title="Permalink to this heading"></a></h3>
+<span id="sec-orientation-vector-stokes"></span><h3>Defining orientation for non-observed radiation<a class="headerlink" href="#defining-orientation-for-non-observed-radiation" title="Link to this heading"></a></h3>
 <p>To complete our description of the Stokes parameters we still need to define in
 which direction we let <span class="math notranslate nohighlight">\(x'\)</span> and <span class="math notranslate nohighlight">\(y'\)</span> point if we do <em>not</em> have an
 obvious observer, i.e. for radiation moving through our object of interest which
@@ -1385,7 +1392,7 @@ I\\Q\\U\\V
 \end{matrix}\right)\end{split}\]</div>
 </section>
 <section id="polarized-scattering-off-dust-particles-general-formalism">
-<h3>Polarized scattering off dust particles: general formalism<a class="headerlink" href="#polarized-scattering-off-dust-particles-general-formalism" title="Permalink to this heading"></a></h3>
+<h3>Polarized scattering off dust particles: general formalism<a class="headerlink" href="#polarized-scattering-off-dust-particles-general-formalism" title="Link to this heading"></a></h3>
 <p>Suppose we have <em>one</em> dust particle of mass <span class="math notranslate nohighlight">\(m_{\mathrm{grain}}\)</span> and we
 place it at location <span class="math notranslate nohighlight">\({\bf x}\)</span>. Suppose this particle is exposed to a
 plane wave of electromagnetic radiation pointing in direction <span class="math notranslate nohighlight">\({\bf
@@ -1464,7 +1471,7 @@ from the famous <code class="docutils literal notranslate"><span class="pre">BHM
 (see Chapter <a class="reference internal" href="opacitieswww.html#chap-acquiring-opacities"><span class="std std-ref">Acquiring opacities from the WWW</span></a>).</p>
 </section>
 <section id="polarized-scattering-off-dust-particles-randomly-oriented-particles">
-<h3>Polarized scattering off dust particles: randomly oriented particles<a class="headerlink" href="#polarized-scattering-off-dust-particles-randomly-oriented-particles" title="Permalink to this heading"></a></h3>
+<h3>Polarized scattering off dust particles: randomly oriented particles<a class="headerlink" href="#polarized-scattering-off-dust-particles-randomly-oriented-particles" title="Link to this heading"></a></h3>
 <p>In the special case in which we either have spherical particles or we
 average over a large number of randomly oriented particles, the <span class="math notranslate nohighlight">\(Z_{ij}\)</span>
 elements are no longer dependent on <em>both</em> <span class="math notranslate nohighlight">\({\bf e}_r\)</span> and <span class="math notranslate nohighlight">\({\bf n}\)</span> but
@@ -1597,7 +1604,7 @@ matrix elements from those books and their computer codes without having to
 adjust the signs.</p>
 </section>
 <section id="scattering-and-axially-symmetric-models">
-<h3>Scattering and axially symmetric models<a class="headerlink" href="#scattering-and-axially-symmetric-models" title="Permalink to this heading"></a></h3>
+<h3>Scattering and axially symmetric models<a class="headerlink" href="#scattering-and-axially-symmetric-models" title="Link to this heading"></a></h3>
 <p>In spherical coordinates it is possible in RADMC-3D to set up axially symmetric
 models. The trick is simply to set the number of <span class="math notranslate nohighlight">\(\phi\)</span> coordinate points
 <code class="docutils literal notranslate"><span class="pre">nphi</span></code> to 1 and to switch off the <span class="math notranslate nohighlight">\(\phi\)</span>-dimension in the grid (see
@@ -1640,7 +1647,7 @@ first-order integration.</p>
 </section>
 </section>
 <section id="more-about-photon-packages-in-the-monte-carlo-simulations">
-<span id="sec-photon-packages-mc"></span><h2>More about photon packages in the Monte Carlo simulations<a class="headerlink" href="#more-about-photon-packages-in-the-monte-carlo-simulations" title="Permalink to this heading"></a></h2>
+<span id="sec-photon-packages-mc"></span><h2>More about photon packages in the Monte Carlo simulations<a class="headerlink" href="#more-about-photon-packages-in-the-monte-carlo-simulations" title="Link to this heading"></a></h2>
 <p>In the ‘standard’ Monte Carlo approach, the input energy (e.g. starlight or, for
 the scattering Monte Carlo, the thermal emission of dust) is divided into
 <span class="math notranslate nohighlight">\(N\)</span> equal energy packages of photons, which then travel through the model
@@ -1667,7 +1674,7 @@ compensate for their favorable focusing toward the grid.</p>
 <code class="docutils literal notranslate"><span class="pre">radmc3d.inp</span></code> file.</p>
 </section>
 <section id="polarized-emission-and-absorption-by-aligned-grains">
-<span id="sec-polarized-thermal-emission"></span><h2>Polarized emission and absorption by aligned grains<a class="headerlink" href="#polarized-emission-and-absorption-by-aligned-grains" title="Permalink to this heading"></a></h2>
+<span id="sec-polarized-thermal-emission"></span><h2>Polarized emission and absorption by aligned grains<a class="headerlink" href="#polarized-emission-and-absorption-by-aligned-grains" title="Link to this heading"></a></h2>
 <p><em>NOTE: This mode is still in the testing phase</em></p>
 <p>Grain alignment and its effects on radiative transfer is a complex topic. A
 review is e.g. Andersson, B.G., Lazarian, A., &amp; Vaillancourt, J.E. (2015)
@@ -1680,7 +1687,7 @@ the degree to which the grain is aligned to that directional vector (more on
 this later). This is according to the RADMC-3D philosophy of doing {em only}
 the radiative transfer and leaving the physics of the material to the user.</p>
 <section id="basics">
-<span id="sec-basic-equations"></span><h3>Basics<a class="headerlink" href="#basics" title="Permalink to this heading"></a></h3>
+<span id="sec-basic-equations"></span><h3>Basics<a class="headerlink" href="#basics" title="Link to this heading"></a></h3>
 <p>Suppose we have flattened (oblate) ellipsoidal grains with one axis of symmetry
 and no helicity. (While helicity may be needed to radiatively spin up grains, we
 assume that on average the helicity of the grains is zero.). Let us assume that
@@ -1932,9 +1939,9 @@ V \\
 (<span class="math notranslate nohighlight">\(\kappa_{\mathrm{abs},\nu,v}\)</span>).</p>
 </section>
 <section id="implementation-in-radmc-3d">
-<h3>Implementation in RADMC-3D<a class="headerlink" href="#implementation-in-radmc-3d" title="Permalink to this heading"></a></h3>
+<h3>Implementation in RADMC-3D<a class="headerlink" href="#implementation-in-radmc-3d" title="Link to this heading"></a></h3>
 <section id="polarized-emission-in-the-images-and-spectra">
-<h4>Polarized emission in the images and spectra<a class="headerlink" href="#polarized-emission-in-the-images-and-spectra" title="Permalink to this heading"></a></h4>
+<h4>Polarized emission in the images and spectra<a class="headerlink" href="#polarized-emission-in-the-images-and-spectra" title="Link to this heading"></a></h4>
 <p>When creating images (and spectra) the <code class="docutils literal notranslate"><span class="pre">camera</span></code> module of RADMC-3D
 performs a ray-tracing calculation (‘volume rendering’) through the grid.
 Normally (for randomly oriented grains) the extinction along the line of
@@ -2074,7 +2081,7 @@ and we have the values of the Stokes parameter at the end of the ray
 segment. Now we repeat this whole procedure for the next ray segment.</p>
 </section>
 <section id="polarized-emission-as-source-term-in-the-monte-carlo-simulation">
-<h4>Polarized emission as source term in the Monte Carlo simulation<a class="headerlink" href="#polarized-emission-as-source-term-in-the-monte-carlo-simulation" title="Permalink to this heading"></a></h4>
+<h4>Polarized emission as source term in the Monte Carlo simulation<a class="headerlink" href="#polarized-emission-as-source-term-in-the-monte-carlo-simulation" title="Link to this heading"></a></h4>
 <p>The polarization effects and anisotropic emission by aligned grains will
 also affect the Monte Carlo simulations.</p>
 <p>For the <em>thermal Monte Carlo</em> (see Section <a class="reference internal" href="#sec-dust-thermal-monte-carlo"><span class="std std-ref">The thermal Monte Carlo simulation: computing the dust temperature</span></a>)
@@ -2111,7 +2118,7 @@ in the scattering Monte Carlo computation.</p>
 </section>
 </section>
 <section id="consistency-with-other-radiative-processes">
-<h3>Consistency with other radiative processes<a class="headerlink" href="#consistency-with-other-radiative-processes" title="Permalink to this heading"></a></h3>
+<h3>Consistency with other radiative processes<a class="headerlink" href="#consistency-with-other-radiative-processes" title="Link to this heading"></a></h3>
 <p>The above equations assume that the absorption/emission is the only radiative
 process included. However, in practice we also have other processes involved,
 such as line emission/absorption or the scattering source function. The way this
@@ -2129,7 +2136,7 @@ the orthogonal (horizontal) and parallel (vertical) Stokes components. That is
 easy to include in this formalism.</p>
 </section>
 <section id="input-files-for-radmc-3d-for-aligned-grains">
-<h3>Input files for RADMC-3D for aligned grains<a class="headerlink" href="#input-files-for-radmc-3d-for-aligned-grains" title="Permalink to this heading"></a></h3>
+<h3>Input files for RADMC-3D for aligned grains<a class="headerlink" href="#input-files-for-radmc-3d-for-aligned-grains" title="Link to this heading"></a></h3>
 <p>In RADMC-3D we implement the functions <span class="math notranslate nohighlight">\(\kappa_{\mathrm{abs},\nu,h}\)</span> and
 <span class="math notranslate nohighlight">\(\kappa_{\mathrm{abs},\nu,v}\)</span> as a function of angle <span class="math notranslate nohighlight">\(\theta\)</span> which the
 alignment axis makes with the light of sight. For <span class="math notranslate nohighlight">\(\theta\)</span> we see the oblate
@@ -2243,14 +2250,14 @@ files have to be made to have RADMC-3D treat the aligned dust grains for thermal
 emission.</p>
 </section>
 <section id="effect-of-aligned-grains-on-the-scattering">
-<span id="sec-align-scat"></span><h3>Effect of aligned grains on the scattering<a class="headerlink" href="#effect-of-aligned-grains-on-the-scattering" title="Permalink to this heading"></a></h3>
+<span id="sec-align-scat"></span><h3>Effect of aligned grains on the scattering<a class="headerlink" href="#effect-of-aligned-grains-on-the-scattering" title="Link to this heading"></a></h3>
 <p><em>This is, currently, not yet implemented.</em></p>
 </section>
 </section>
 <section id="grain-size-distributions">
-<span id="sec-grain-size-distributions"></span><h2>Grain size distributions<a class="headerlink" href="#grain-size-distributions" title="Permalink to this heading"></a></h2>
+<span id="sec-grain-size-distributions"></span><h2>Grain size distributions<a class="headerlink" href="#grain-size-distributions" title="Link to this heading"></a></h2>
 <section id="quick-summary-of-how-to-implement-grain-sizes">
-<span id="sec-grain-size-distributions-overview"></span><h3>Quick summary of how to implement grain sizes<a class="headerlink" href="#quick-summary-of-how-to-implement-grain-sizes" title="Permalink to this heading"></a></h3>
+<span id="sec-grain-size-distributions-overview"></span><h3>Quick summary of how to implement grain sizes<a class="headerlink" href="#quick-summary-of-how-to-implement-grain-sizes" title="Link to this heading"></a></h3>
 <p>A common application of RADMC-3D is continuum radiative transfer in media with a
 grain size distribution. RADMC-3D does not know the concept of “grain size
 distribution”, and it does not care. You have to provide RADMC-3D will all the
@@ -2267,7 +2274,7 @@ dust species. Slower but more realistic and flexible.</p></li>
 <p>In the following subsections we will discuss both methods.</p>
 </section>
 <section id="method-1-size-distribution-in-the-opacity-file-faster">
-<span id="sec-grain-size-distributions-method-1"></span><h3>Method 1: Size distribution in the opacity file (faster)<a class="headerlink" href="#method-1-size-distribution-in-the-opacity-file-faster" title="Permalink to this heading"></a></h3>
+<span id="sec-grain-size-distributions-method-1"></span><h3>Method 1: Size distribution in the opacity file (faster)<a class="headerlink" href="#method-1-size-distribution-in-the-opacity-file-faster" title="Link to this heading"></a></h3>
 <p>The simplest way is to compute a single dust opacity table (see Section
 <a class="reference internal" href="inputoutputfiles.html#sec-opacities"><span class="std std-ref">INPUT (required for dust transfer): dustopac.inp and dustkappa_*.inp or dustkapscatmat_*.inp or dust_optnk_*.inp</span></a>) for a single dust species. You compute the weighted dust
 opacity and put that into the file <code class="docutils literal notranslate"><span class="pre">dustkappa_XXX.inp</span></code> (for instance let’s
@@ -2291,7 +2298,7 @@ distribution. See Section <a class="reference internal" href="#sec-math-of-grain
 information about size distributions.</p>
 </section>
 <section id="method-2-size-distribution-in-the-density-file-better">
-<span id="sec-grain-size-distributions-method-2"></span><h3>Method 2: Size distribution in the density file (better)<a class="headerlink" href="#method-2-size-distribution-in-the-density-file-better" title="Permalink to this heading"></a></h3>
+<span id="sec-grain-size-distributions-method-2"></span><h3>Method 2: Size distribution in the density file (better)<a class="headerlink" href="#method-2-size-distribution-in-the-density-file-better" title="Link to this heading"></a></h3>
 <p>RADMC-3D can handle multiple dust species simultaneously and co-spatially. So
 you can have <span class="math notranslate nohighlight">\(N\)</span> grain sizes, each represented by its own opacity file and
 its own spatial density distribution. So if we, for example, have two sizes, 1
@@ -2324,7 +2331,7 @@ wish. See Section <a class="reference internal" href="#sec-math-of-grain-size-di
 information about size distributions.</p>
 </section>
 <section id="the-mathematics-of-grain-size-distributions">
-<span id="sec-math-of-grain-size-distributions"></span><h3>The mathematics of grain size distributions<a class="headerlink" href="#the-mathematics-of-grain-size-distributions" title="Permalink to this heading"></a></h3>
+<span id="sec-math-of-grain-size-distributions"></span><h3>The mathematics of grain size distributions<a class="headerlink" href="#the-mathematics-of-grain-size-distributions" title="Link to this heading"></a></h3>
 <p>Grain size distributions can be confusing, so here is a small tutorial.
 Suppose we have the famous MRN (Mathis, Rumpl, Nordsieck) size distribution:</p>
 <div class="math notranslate nohighlight">

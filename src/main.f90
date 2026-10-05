@@ -204,7 +204,7 @@ program radmc3d
   !                                         ! switched on.
   rt_mcparams%enthres          = 1.d-2
   rt_mcparams%irestart         = 0
-  rt_mcparams%cntdump          = 10000000
+  rt_mcparams%cntdump          = 100000
   rt_mcparams%ntemp            = 1000
   rt_mcparams%itempdecoup      = 1
   rt_mcparams%temp0            = 0.01d0
@@ -214,7 +214,7 @@ program radmc3d
   rt_mcparams%debug_write_stats= 0
   rt_mcparams%debug_write_path = 0
 !!  rt_mcparams%debug_write_eventcounts = 0
-  rt_mcparams%countwrite       = 1000
+  rt_mcparams%countwrite       = 100000
   rt_mcparams%ivstrt           = 1       ! Dust species 1 used for vert struct
   rt_mcparams%vserrtol         = 0.d0
   rt_mcparams%niter_vstruct    = 0
@@ -2301,7 +2301,7 @@ subroutine read_radmcinp_file()
      call parse_input_integer('ifast@                        ',rt_mcparams%ifast)
      call parse_input_integer('iranfreqmode@                 ',rt_mcparams%iranfreqmode)
      call parse_input_double ('enthres@                      ',rt_mcparams%enthres)
-     call parse_input_integer('cntdump@                      ',rt_mcparams%cntdump)
+     call parse_input_integer8('cntdump@                      ',rt_mcparams%cntdump)
      call parse_input_integer('irestart@                     ',rt_mcparams%irestart)
      call parse_input_integer('itempdecoup@                  ',rt_mcparams%itempdecoup)
      call parse_input_integer('debug_write_stats@            ',rt_mcparams%debug_write_stats)
@@ -2320,7 +2320,7 @@ subroutine read_radmcinp_file()
      call parse_input_integer('ntemp@                        ',rt_mcparams%ntemp)
      call parse_input_double ('temp0@                        ',rt_mcparams%temp0)
      call parse_input_double ('temp1@                        ',rt_mcparams%temp1)
-     call parse_input_integer('countwrite@                   ',rt_mcparams%countwrite)
+     call parse_input_integer8('countwrite@                   ',rt_mcparams%countwrite)
      call parse_input_integer('camera_tracemode@             ',camera_tracemode)
      idum=-1
      call parse_input_integer('writeimage_unformatted@       ',idum)

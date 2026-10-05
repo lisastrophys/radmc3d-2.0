@@ -1,4 +1,5 @@
 module camera_module
+  !$ use omp_lib
   use rtglobal_module
   use amrray_module
   use dust_module
@@ -79,6 +80,7 @@ module camera_module
   !
   logical :: camera_localobserver=.false.
   integer :: camera_localobs_projection=1
+  logical :: camera_speed_tip_shown = .false.
   !
   !   If this integer is set to 1, then the stars are included in the images.
   !   In this version they are only included as point sources.
@@ -298,6 +300,11 @@ module camera_module
   !
   double precision :: camera_maxdphi = 0.d0
   !
+  ! OpenMP Parallellization:
+  ! Global variables used in subroutine calls within the parallel region which are threadprivate
+  !
+  !!!!!!$OMP THREADPRIVATE(camera_nrrefine)
+  !$OMP THREADPRIVATE(camera_intensity_iquv)
 contains
 
 
@@ -465,11 +472,13 @@ subroutine camera_init()
      write(stdo,*) 'ERROR in camera module: Could not allocate spectrum array.'
      stop
   endif
+  !$OMP PARALLEL
   allocate(camera_intensity_iquv(1:camera_nrfreq,1:4),STAT=ierr)
   if(ierr.ne.0) then
      write(stdo,*) 'ERROR in camera module: Could not allocate camera_intensity_iquv() array'
      stop
   endif
+  !$OMP END PARALLEL
   !
   ! Now allocate the image array for the rectangular images
   !
@@ -570,7 +579,9 @@ subroutine camera_partial_cleanup()
   if(allocated(camera_rect_image_iquv)) deallocate(camera_rect_image_iquv)
   if(allocated(camera_circ_image_iquv)) deallocate(camera_circ_image_iquv)
   if(allocated(camera_spectrum_iquv)) deallocate(camera_spectrum_iquv)
+  !$OMP PARALLEL
   if(allocated(camera_intensity_iquv)) deallocate(camera_intensity_iquv)
+  !$OMP END PARALLEL
   if(allocated(camera_xstop)) deallocate(camera_xstop)
   if(allocated(camera_ystop)) deallocate(camera_ystop)
   if(allocated(camera_zstop)) deallocate(camera_zstop)
@@ -1101,7 +1112,7 @@ subroutine camera_serial_raytrace(nrfreq,inu0,inu1,x,y,z,dx,dy,dz,distance,   &
   doubleprecision :: nstp,nu,nu0,nu0_prev,nu0_curr
   doubleprecision :: ap,jp(1:4),sp(1:4),ac,jc(1:4),sc(1:4),theomax(1:4),qdr(1:4)
   doubleprecision :: duc,eps,eps1,eps0,temp,resol,margin
-  integer :: nsteps,iline,ilactive,istep,idir
+  integer :: nsteps,iline,ilactive,istep,idir,ierror
   integer :: ixx,iyy,izz,bc_idir,bc_ilr
   double precision :: xbk,ybk,zbk,spx,spy,spz,rx1,ry1,rz1,rx0,ry0,rz0
   !
@@ -1422,7 +1433,7 @@ subroutine camera_serial_raytrace(nrfreq,inu0,inu1,x,y,z,dx,dy,dz,distance,   &
            call amrray_find_next_location_cart(ray_dsend,            &
                 ray_cart_x,ray_cart_y,ray_cart_z,                    &
                 ray_cart_dirx,ray_cart_diry,ray_cart_dirz,           &
-                ray_index,ray_indexnext,ray_ds,arrived,              &
+                ray_index,ray_indexnext,ray_ds,arrived,ierror,       &
                 levelnext=levelnext)
            !
            ! Check if this cell is the smallest so far
@@ -1495,7 +1506,7 @@ subroutine camera_serial_raytrace(nrfreq,inu0,inu1,x,y,z,dx,dy,dz,distance,   &
               call amrray_find_next_location_spher(ray_dsend,           &
                    ray_cart_x,ray_cart_y,ray_cart_z,                    &
                    ray_cart_dirx,ray_cart_diry,ray_cart_dirz,           &
-                   ray_index,ray_indexnext,ray_ds,arrived)
+                   ray_index,ray_indexnext,ray_ds,arrived,ierror)
            else
               !
               ! The case when we want to prevent too strong jumps
@@ -1504,7 +1515,7 @@ subroutine camera_serial_raytrace(nrfreq,inu0,inu1,x,y,z,dx,dy,dz,distance,   &
               call amrray_find_next_location_spher(ray_dsend,           &
                    ray_cart_x,ray_cart_y,ray_cart_z,                    &
                    ray_cart_dirx,ray_cart_diry,ray_cart_dirz,           &
-                   ray_index,ray_indexnext,ray_ds,arrived,              &
+                   ray_index,ray_indexnext,ray_ds,arrived,ierror,       &
                    maxdeltasina=camera_maxdphi)
            endif
            !
@@ -2744,6 +2755,10 @@ recursive subroutine camera_compute_one_pixel(nrfreq,inu0,inu1,px,py,pdx,pdy,  &
   integer :: nrfreq,istar
   double precision :: intensity(nrfreq,1:4)
   double precision :: intensdum(nrfreq,1:4)
+  double precision :: intensdum11(nrfreq,1:4)
+  double precision :: intensdum12(nrfreq,1:4)
+  double precision :: intensdum13(nrfreq,1:4)
+  double precision :: intensdum14(nrfreq,1:4)
   double precision :: intensdum2(nrfreq,1:4)
   double precision :: px,py,pdx,pdy
   double precision :: x1,y1,dx1,dy1
@@ -2751,6 +2766,8 @@ recursive subroutine camera_compute_one_pixel(nrfreq,inu0,inu1,px,py,pdx,pdy,  &
   double precision :: celldxmin,dum1,factor,rmin
   integer :: nrrefine,idum,inu0,inu1,inu,ns,istar1,is
   logical :: flag,todo,donerefine
+  integer :: id
+  !$ integer OMP_get_thread_num
   !
   ! Check
   !
@@ -2793,7 +2810,11 @@ recursive subroutine camera_compute_one_pixel(nrfreq,inu0,inu1,px,py,pdx,pdy,  &
   !
   ! Increase the counter
   !
+  ! Need critical to get the sub-pixeling numbers correct, but slows down the
+  ! parallelization a lot. I would suggest not using. - Patrick Sheehan
+  !!!!!!$OMP CRITICAL
   camera_subpixeling_npixtot = camera_subpixeling_npixtot + 1
+  !!!!!!$OMP END CRITICAL
   !
   ! Check if we need to refine our pixel
   !
@@ -2811,27 +2832,48 @@ recursive subroutine camera_compute_one_pixel(nrfreq,inu0,inu1,px,py,pdx,pdy,  &
         dy1  = 0.5d0*pdy
         intensity(inu0:inu1,1:4) = 0.d0
         !
+        ! OPENMP PARALLELIZATION HERE TO SPEED THINGS UP.
+        !
+        !$OMP TASK PRIVATE(x1,y1) SHARED(intensdum11) &
+        !$OMP FIRSTPRIVATE(nrfreq,inu0,inu1,dx1,dy1,idum,istar)
         x1   = px-0.25d0*pdx
         y1   = py-0.25d0*pdy
-        call camera_compute_one_pixel(nrfreq,inu0,inu1,x1,y1,dx1,dy1,idum,intensdum,istar)
-        intensity(inu0:inu1,1:4) = intensity(inu0:inu1,1:4) + intensdum(inu0:inu1,1:4)
+        call camera_compute_one_pixel(nrfreq,inu0,inu1,x1,y1,dx1,dy1,idum,intensdum11,istar)
+        !intensity(inu0:inu1,1:4) = intensity(inu0:inu1,1:4) + intensdum11(inu0:inu1,1:4)
+        !$OMP END TASK
         !
+        !$OMP TASK PRIVATE(x1,y1) SHARED(intensdum12) &
+        !$OMP FIRSTPRIVATE(nrfreq,inu0,inu1,dx1,dy1,idum,istar)
         x1   = px+0.25d0*pdx
         y1   = py-0.25d0*pdy
-        call camera_compute_one_pixel(nrfreq,inu0,inu1,x1,y1,dx1,dy1,idum,intensdum,istar)
-        intensity(inu0:inu1,1:4) = intensity(inu0:inu1,1:4) + intensdum(inu0:inu1,1:4)
+        call camera_compute_one_pixel(nrfreq,inu0,inu1,x1,y1,dx1,dy1,idum,intensdum12,istar)
+        !intensity(inu0:inu1,1:4) = intensity(inu0:inu1,1:4) + intensdum12(inu0:inu1,1:4)
+        !$OMP END TASK
         !
+        !$OMP TASK PRIVATE(x1,y1) SHARED(intensdum13) &
+        !$OMP FIRSTPRIVATE(nrfreq,inu0,inu1,dx1,dy1,idum,istar)
         x1   = px-0.25d0*pdx
         y1   = py+0.25d0*pdy
-        call camera_compute_one_pixel(nrfreq,inu0,inu1,x1,y1,dx1,dy1,idum,intensdum,istar)
-        intensity(inu0:inu1,1:4) = intensity(inu0:inu1,1:4) + intensdum(inu0:inu1,1:4)
+        call camera_compute_one_pixel(nrfreq,inu0,inu1,x1,y1,dx1,dy1,idum,intensdum13,istar)
+        !intensity(inu0:inu1,1:4) = intensity(inu0:inu1,1:4) + intensdum13(inu0:inu1,1:4)
+        !$OMP END TASK
         !
+        !$OMP TASK PRIVATE(x1,y1) SHARED(intensdum14) &
+        !$OMP FIRSTPRIVATE(nrfreq,inu0,inu1,dx1,dy1,idum,istar)
         x1   = px+0.25d0*pdx
         y1   = py+0.25d0*pdy
-        call camera_compute_one_pixel(nrfreq,inu0,inu1,x1,y1,dx1,dy1,idum,intensdum,istar)
-        intensity(inu0:inu1,1:4) = intensity(inu0:inu1,1:4) + intensdum(inu0:inu1,1:4)
+        call camera_compute_one_pixel(nrfreq,inu0,inu1,x1,y1,dx1,dy1,idum,intensdum14,istar)
+        !intensity(inu0:inu1,1:4) = intensity(inu0:inu1,1:4) + intensdum14(inu0:inu1,1:4)
+        !$OMP END TASK
         !
+        !$OMP TASKWAIT
+        !
+        intensity(inu0:inu1,1:4) = intensity(inu0:inu1,1:4) + intensdum11(inu0:inu1,1:4)
+        intensity(inu0:inu1,1:4) = intensity(inu0:inu1,1:4) + intensdum12(inu0:inu1,1:4)
+        intensity(inu0:inu1,1:4) = intensity(inu0:inu1,1:4) + intensdum13(inu0:inu1,1:4)
+        intensity(inu0:inu1,1:4) = intensity(inu0:inu1,1:4) + intensdum14(inu0:inu1,1:4)
         intensity(inu0:inu1,1:4) = intensity(inu0:inu1,1:4) * 0.25d0
+        !
         donerefine = .true.
      else
         !
@@ -2845,7 +2887,9 @@ recursive subroutine camera_compute_one_pixel(nrfreq,inu0,inu1,px,py,pdx,pdy,  &
      ! No refinement was done, so this pixel also counts as a "fine" pixel
      ! So increase that counter (this is just for diagnostics; it's non-essential)
      !
+     !!!!!!$OMP CRITICAL
      camera_subpixeling_npixfine = camera_subpixeling_npixfine + 1
+     !!!!!!$OMP END CRITICAL
   endif
   !
   ! Include stellar spheres
@@ -3134,6 +3178,7 @@ subroutine camera_make_rect_image(img,tausurf)
   character*80 :: strint
   integer :: iact,icnt,ilinesub
   logical :: redo
+  double precision :: seconds
   !
   ! If "tausurf" is set, then the purpose of this subroutine
   ! changes from being an imager to being a "tau=1 surface finder".
@@ -3828,6 +3873,7 @@ subroutine camera_make_rect_image(img,tausurf)
      ! If necessary, then do the scattering source functions at all
      ! frequencies beforehand.  WARNING: This can be a very large array!
      !
+     !$ seconds = omp_get_wtime()
      if(domc) then
         if(allocated(mc_frequencies)) deallocate(mc_frequencies)
         mc_nrfreq=camera_nrfreq
@@ -3854,12 +3900,13 @@ subroutine camera_make_rect_image(img,tausurf)
            ! If the Monte Carlo settings are very conservative, then give a warning
            ! that you may want to change this (but at your own risk). 
            !
-           if(mc_scat_maxtauabs.gt.5.d0) then
+           if((mc_scat_maxtauabs.gt.5.d0).and.(.not. camera_speed_tip_shown)) then
               write(stdo,*) 'Tip for speed-up: By default the settings of RADMC-3D are conservative (i.e. safe but slow).'
               write(stdo,*) '   A photon package in monochromatic Monte Carlo is only destroyed after tau_abs = ',mc_scat_maxtauabs
               write(stdo,*) '   In most cases, however, an optical depth limit of 5 is enough.'
               write(stdo,*) '   You can (though at your own risk) speed this up by adding the following line to radmc3d.inp:'
               write(stdo,*) '   mc_scat_maxtauabs = 5.d0'
+              camera_speed_tip_shown = .true.
            endif
         elseif(camera_lambda_starlight_single_scat_mode.eq.1) then
            call do_lambda_starlight_single_scattering(rt_mcparams,ierror,scatsrc=.true.)
@@ -3870,6 +3917,7 @@ subroutine camera_make_rect_image(img,tausurf)
            stop 8762
         endif
      endif
+     !$ write(stdo,*)"Total elapsed time:",omp_get_wtime() - seconds;
      !
      ! Pre-compute which lines and which levels for line transfer may
      ! contribute to these wavelengths. Note that this only has to be
@@ -3972,14 +4020,17 @@ subroutine camera_make_rect_image(img,tausurf)
               ! that you may want to change this (but at your own risk). 
               !
               if(mc_scat_maxtauabs.gt.5.d0) then
-                 write(stdo,*) 'Tip for speed-up: By default the settings of RADMC-3D are conservative ', &
-                      '(i.e. safe but slow).'
-                 write(stdo,'(A68,A16,F6.2)') '   A photon package in monochromatic Monte Carlo is only destroyed ', &
-                      'after tau_abs = ',mc_scat_maxtauabs
-                 write(stdo,*) '   In most cases, however, an optical depth limit of 5 is enough.'
-                 write(stdo,*) '   You can (though at your own risk) speed this up by adding the following ', &
-                      'line to radmc3d.inp:'
-                 write(stdo,*) '   mc_scat_maxtauabs = 5.d0'
+                 if(.not. camera_speed_tip_shown) then
+                    write(stdo,*) 'Tip for speed-up: By default the settings of RADMC-3D are conservative ', &
+                         '(i.e. safe but slow).'
+                    write(stdo,'(A68,A16,F6.2)') '   A photon package in monochromatic Monte Carlo is only destroyed ', &
+                         'after tau_abs = ',mc_scat_maxtauabs
+                    write(stdo,*) '   In most cases, however, an optical depth limit of 5 is enough.'
+                    write(stdo,*) '   You can (though at your own risk) speed this up by adding the following ', &
+                         'line to radmc3d.inp:'
+                    write(stdo,*) '   mc_scat_maxtauabs = 5.d0'
+                    camera_speed_tip_shown = .true.
+                 endif
               else
                  if(mc_scat_maxtauabs.gt.2.d0) then
                     write(stdo,'(A36,F6.2,A36)') ' Warning: Using mc_scat_maxtauabs = ',mc_scat_maxtauabs, &
@@ -4165,11 +4216,23 @@ subroutine camera_make_rect_image(img,tausurf)
     integer :: inuu
     integer :: backup_nrrefine,backup_tracemode
     logical :: warn_tausurf_problem,flag_quv_too_big
+    integer :: id,nthreads
+    double precision :: seconds
+    integer :: pixel_count = 0
+    integer(kind=8) :: total_pix,pixels_done,step,last_print
+    integer :: iprogress
+    !$ integer OMP_get_num_threads
+    !$ integer OMP_get_thread_num
+    !$ integer OMP_get_num_procs
     !
     ! Reset some non-essential counters
     !
     camera_subpixeling_npixfine = 0
     camera_subpixeling_npixtot  = 0
+    pixels_done = 0_8
+    total_pix   = camera_image_nx*camera_image_ny
+    step        = max(1_8,total_pix/20_8)
+    last_print  = -step
     !
     ! Here we decide whether to make a "normal" image or
     ! whether we find the tau=1 surface 
@@ -4180,7 +4243,23 @@ subroutine camera_make_rect_image(img,tausurf)
        !
        ! *** NEAR FUTURE: PUT OPENMP DIRECTIVES HERE (START) ***
        !
+       !$ seconds = omp_get_wtime()
+       !
+       !$OMP PARALLEL &
+       !
+       !!$ Local variables from this function.
+       !
+       !$OMP PRIVATE(px,py,id,nthreads,pixel_count)
+       !
+       ! pixel_count = 0
+       !
+       ! id=OMP_get_thread_num()
+       ! nthreads=OMP_get_num_threads()
+       ! write(stdo,*) 'Thread Nr',id,'of',nthreads,'threads in total'
        flag_quv_too_big = .false.
+       !
+       !$OMP DO COLLAPSE(2) SCHEDULE(dynamic)
+       !
        do iy=1,camera_image_ny
           do ix=1,camera_image_nx
              !
@@ -4230,13 +4309,35 @@ subroutine camera_make_rect_image(img,tausurf)
                 enddo
              endif
              !
+             !$ pixel_count = pixel_count + 1
+             !$OMP ATOMIC
+             pixels_done = pixels_done + 1_8
+             if(mod(pixels_done,step).eq.0_8) then
+                !$OMP CRITICAL
+                if(pixels_done.gt.last_print) then
+                   last_print = pixels_done
+                   iprogress = int(100.d0*dble(pixels_done)/dble(total_pix))
+                   write(stdo,*) 'Ray-tracing progress: ', iprogress, '%'
+                   call flush(stdo)
+                endif
+                !$OMP END CRITICAL
+             endif
           enddo
        enddo
+       !
+       !$OMP END DO
+       !
        if(flag_quv_too_big) then
           write(stdo,*) 'WARNING: While making an image, I found an instance of Q^2+U^2+V^2>I^2...'
        endif
        !
        ! *** NEAR FUTURE: PUT OPENMP DIRECTIVES HERE (FINISH) ***
+       !
+       !   write(stdo,*) 'Thread:',id,'raytraced:',pixel_count,'pixels'
+       !
+       !$OMP END PARALLEL
+       !
+       !$ write(stdo,*)"Elapsed time:",omp_get_wtime() - seconds;
        !
     else
        !
@@ -4309,6 +4410,15 @@ subroutine camera_make_rect_image(img,tausurf)
                 camera_tausurface_z(ix,iy,inu00:inu11) = camera_zstop(inu00:inu11)
              endif
              !
+             pixels_done = pixels_done + 1_8
+             if(mod(pixels_done,step).eq.0_8) then
+                if(pixels_done.gt.last_print) then
+                   last_print = pixels_done
+                   iprogress = int(100.d0*dble(pixels_done)/dble(total_pix))
+                   write(stdo,*) 'Ray-tracing progress: ', iprogress, '%'
+                   call flush(stdo)
+                endif
+             endif
           enddo
        enddo
        !
@@ -5238,7 +5348,7 @@ subroutine camera_ray1d_raytrace(nrfreq,x,y,z,dx,dy,dz,distance,celldxmin,&
   double precision :: x,y,z,dx,dy,dz,dum,distance,celldxmin
   double precision :: freq,alpnu,jnu,alpha_a,dummy,expt,temp,src
   integer :: ispec,nrfreq,deepestlevel
-  integer :: inu,levelnext,is
+  integer :: inu,levelnext,is,ierror
   logical :: arrived
   double precision :: intensity(nrfreq)
   double precision :: rlen,cosp,sinp,cost,sint,vx,vy,vz
@@ -5406,7 +5516,7 @@ subroutine camera_ray1d_raytrace(nrfreq,x,y,z,dx,dy,dz,distance,celldxmin,&
            call amrray_find_next_location_cart(ray_dsend,            &
                 ray_cart_x,ray_cart_y,ray_cart_z,                    &
                 ray_cart_dirx,ray_cart_diry,ray_cart_dirz,           &
-                ray_index,ray_indexnext,ray_ds,arrived,              &
+                ray_index,ray_indexnext,ray_ds,arrived,ierror,       &
                 levelnext=levelnext)
            !
            ! Check if this cell is the smallest so far
@@ -5466,7 +5576,7 @@ subroutine camera_ray1d_raytrace(nrfreq,x,y,z,dx,dy,dz,distance,celldxmin,&
            call amrray_find_next_location_spher(ray_dsend,           &
                 ray_cart_x,ray_cart_y,ray_cart_z,                    &
                 ray_cart_dirx,ray_cart_diry,ray_cart_dirz,           &
-                ray_index,ray_indexnext,ray_ds,arrived)
+                ray_index,ray_indexnext,ray_ds,arrived,ierror)
            !
            ! Check if this cell is the smallest so far
            !
@@ -7009,14 +7119,17 @@ subroutine camera_make_circ_image()
               ! that you may want to change this (but at your own risk). 
               !
               if(mc_scat_maxtauabs.gt.5.d0) then
-                 write(stdo,*) 'Tip for speed-up: By default the settings of RADMC-3D are conservative ', &
-                      '(i.e. safe but slow).'
-                 write(stdo,'(A68,A16,F6.2)') '   A photon package in monochromatic Monte Carlo is only destroyed ', &
-                      'after tau_abs = ',mc_scat_maxtauabs
-                 write(stdo,*) '   In most cases, however, an optical depth limit of 5 is enough.'
-                 write(stdo,*) '   You can (though at your own risk) speed this up by adding the following ', &
-                      'line to radmc3d.inp:'
-                 write(stdo,*) '   mc_scat_maxtauabs = 5.d0'
+                 if(.not. camera_speed_tip_shown) then
+                    write(stdo,*) 'Tip for speed-up: By default the settings of RADMC-3D are conservative ', &
+                         '(i.e. safe but slow).'
+                    write(stdo,'(A68,A16,F6.2)') '   A photon package in monochromatic Monte Carlo is only destroyed ', &
+                         'after tau_abs = ',mc_scat_maxtauabs
+                    write(stdo,*) '   In most cases, however, an optical depth limit of 5 is enough.'
+                    write(stdo,*) '   You can (though at your own risk) speed this up by adding the following ', &
+                         'line to radmc3d.inp:'
+                    write(stdo,*) '   mc_scat_maxtauabs = 5.d0'
+                    camera_speed_tip_shown = .true.
+                 endif
               else
                  if(mc_scat_maxtauabs.gt.2.d0) then
                     write(stdo,'(A36,F6.2,A36)') ' Warning: Using mc_scat_maxtauabs = ',mc_scat_maxtauabs, &
@@ -7174,13 +7287,35 @@ subroutine camera_make_circ_image()
     integer :: backup_nrrefine,backup_tracemode
     logical :: warn_tausurf_problem,flag_quv_too_big
     double precision :: r,phi
+    integer :: id,nthreads
+    double precision :: seconds
+    integer :: pixel_count = 0
+    !$ integer OMP_get_num_threads
+    !$ integer OMP_get_thread_num
+    !$ integer OMP_get_num_procs
     !
     ! *** NEAR FUTURE: PUT OPENMP DIRECTIVES HERE (START) ***
     !
+    !$ seconds = omp_get_wtime()
+    !
+    !$OMP PARALLEL &
+    !
+    !!$ Local variables from this function.
+    !
+    !$OMP PRIVATE(ir,iphi,px,py,x,y,z,dirx,diry,dirz,distance,r,phi,id,nthreads,pixel_count)
+    !
+    ! pixel_count = 0
+    !
+    ! id=OMP_get_thread_num()
+    ! nthreads=OMP_get_num_threads()
+    ! write(stdo,*) 'Thread Nr',id,'of',nthreads,'threads in total'
     flag_quv_too_big = .false.
+    !
+    !$OMP DO COLLAPSE(2) SCHEDULE(dynamic)
+    !
     do ir=1,camera_image_nr
-       r = cim_rc(ir)
        do iphi=1,camera_image_nphi
+          r = cim_rc(ir)
           phi = cim_pc(iphi)
           !
           ! Set the ray variables
@@ -7239,14 +7374,23 @@ subroutine camera_make_circ_image()
              enddo
           endif
           !
+          ! pixel_count = pixel_count + 1
        enddo
     enddo
+    !
+    !$OMP END DO
     !
     ! *** NEAR FUTURE: PUT OPENMP DIRECTIVES HERE (FINISH) ***
     !
     if(flag_quv_too_big) then
        write(stdo,*) 'WARNING: While making an image, I found an instance of Q^2+U^2+V^2>I^2...'
     endif
+    !
+    !$   write(stdo,*) 'Thread:',id,'raytraced:',pixel_count,'pixels'
+    !
+    !$OMP END PARALLEL
+    !
+    !$ write(stdo,*)"Elapsed time:",omp_get_wtime() - seconds;
     !
     ! Add the central star (star 1)
     ! 

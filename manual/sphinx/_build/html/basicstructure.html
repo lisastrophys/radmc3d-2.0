@@ -1,22 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Basic structure and functionality &mdash; radmc3d 2.0 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=60dbed4a"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -29,11 +29,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> radmc3d
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            radmc3d
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -86,8 +90,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Basic structure and functionality</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Basic structure and functionality</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/basicstructure.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -98,7 +102,7 @@
            <div itemprop="articleBody">
              
   <section id="basic-structure-and-functionality">
-<span id="chap-basic-struct-and-func"></span><h1>Basic structure and functionality<a class="headerlink" href="#basic-structure-and-functionality" title="Permalink to this heading"></a></h1>
+<span id="chap-basic-struct-and-func"></span><h1>Basic structure and functionality<a class="headerlink" href="#basic-structure-and-functionality" title="Link to this heading"></a></h1>
 <p>RADMC-3D is a very versatile radiative transfer package with many
 possibilities. As a consequence it is a rather complex package. However, we
 have tried to keep it still as easy as possible to use as a first-time
@@ -120,7 +124,7 @@ out-of-the-box, or that you can adapt to your needs.</p>
 in its simplest form: ignoring all the hidden fancy options and
 possibilities. For the details we then refer to the chapters ahead.</p>
 <section id="basic-dataflow">
-<span id="sec-dataflow"></span><h2>Basic dataflow<a class="headerlink" href="#basic-dataflow" title="Permalink to this heading"></a></h2>
+<span id="sec-dataflow"></span><h2>Basic dataflow<a class="headerlink" href="#basic-dataflow" title="Link to this heading"></a></h2>
 <p>Let us first clarify the basic philosophy of the code package (details will
 be done later). When we talk about RADMC-3D we talk about the
 fortran-90 program. The source codes are in the directory <code class="docutils literal notranslate"><span class="pre">src/</span></code>
@@ -149,11 +153,12 @@ be a *.binp, *.bdat or *.bout file.</em></p>
 produces the input files; RADMC-3D reads them, performs the calculation,
 and produces output files. The user can then analyze the output files.</span></a>.</p>
 <figure class="align-default" id="id1">
-<span id="fig-dataflow-basic"></span><a class="reference internal image-reference" href="_images/dataflow-basic.svg"><img alt="_images/dataflow-basic.svg" src="_images/dataflow-basic.svg" width="50%" /></a>
+<span id="fig-dataflow-basic"></span><a class="reference internal image-reference" href="_images/dataflow-basic.svg"><img alt="_images/dataflow-basic.svg" src="_images/dataflow-basic.svg" style="width: 50%;" />
+</a>
 <figcaption>
 <p><span class="caption-number">Fig. 1 </span><span class="caption-text">Pictographic representation of the basic dataflow of RADMC-3D. The user
 produces the input files; RADMC-3D reads them, performs the calculation,
-and produces output files. The user can then analyze the output files.</span><a class="headerlink" href="#id1" title="Permalink to this image"></a></p>
+and produces output files. The user can then analyze the output files.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>Not always can RADMC-3D produce its output files in one go. Sometimes it has to
@@ -168,12 +173,13 @@ of a 2-stage procedure, such as for dust continuum transfer. An intermediate
 file is produced that will be used by stage 2, but of course the user can
 also analyze the intermediate file itself.</span></a>.</p>
 <figure class="align-default" id="id2">
-<span id="fig-dataflow-twostage"></span><a class="reference internal image-reference" href="_images/dataflow-twostage.svg"><img alt="_images/dataflow-twostage.svg" src="_images/dataflow-twostage.svg" width="85%" /></a>
+<span id="fig-dataflow-twostage"></span><a class="reference internal image-reference" href="_images/dataflow-twostage.svg"><img alt="_images/dataflow-twostage.svg" src="_images/dataflow-twostage.svg" style="width: 85%;" />
+</a>
 <figcaption>
 <p><span class="caption-number">Fig. 2 </span><span class="caption-text">Pictographic representation of the dataflow of RADMC-3D for the case
 of a 2-stage procedure, such as for dust continuum transfer. An intermediate
 file is produced that will be used by stage 2, but of course the user can
-also analyze the intermediate file itself.</span><a class="headerlink" href="#id2" title="Permalink to this image"></a></p>
+also analyze the intermediate file itself.</span><a class="headerlink" href="#id2" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>Several of these input files contain large tables, for instance of the density
@@ -205,24 +211,26 @@ file is produced that will be used by stage 2, but of course the user can
 also analyze the intermediate file itself.</span></a> for the
 two-stage dataflow.</p>
 <figure class="align-default" id="id3">
-<span id="fig-dataflow-basic-python"></span><a class="reference internal image-reference" href="_images/dataflow-basic-python.svg"><img alt="_images/dataflow-basic-python.svg" src="_images/dataflow-basic-python.svg" width="50%" /></a>
+<span id="fig-dataflow-basic-python"></span><a class="reference internal image-reference" href="_images/dataflow-basic-python.svg"><img alt="_images/dataflow-basic-python.svg" src="_images/dataflow-basic-python.svg" style="width: 50%;" />
+</a>
 <figcaption>
 <p><span class="caption-number">Fig. 3 </span><span class="caption-text">Pictographic representation of how the Python programs in the example directories
-are used to create the input files of RADMC-3D.</span><a class="headerlink" href="#id3" title="Permalink to this image"></a></p>
+are used to create the input files of RADMC-3D.</span><a class="headerlink" href="#id3" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <figure class="align-default" id="id4">
-<span id="fig-dataflow-twostage-python"></span><a class="reference internal image-reference" href="_images/dataflow-twostage-python.svg"><img alt="_images/dataflow-twostage-python.svg" src="_images/dataflow-twostage-python.svg" width="85%" /></a>
+<span id="fig-dataflow-twostage-python"></span><a class="reference internal image-reference" href="_images/dataflow-twostage-python.svg"><img alt="_images/dataflow-twostage-python.svg" src="_images/dataflow-twostage-python.svg" style="width: 85%;" />
+</a>
 <figcaption>
 <p><span class="caption-number">Fig. 4 </span><span class="caption-text">Pictographic representation of the dataflow of RADMC-3D for the case
 of a 2-stage procedure, such as for dust continuum transfer. An intermediate
 file is produced that will be used by stage 2, but of course the user can
-also analyze the intermediate file itself.</span><a class="headerlink" href="#id4" title="Permalink to this image"></a></p>
+also analyze the intermediate file itself.</span><a class="headerlink" href="#id4" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 </section>
 <section id="radiative-processes">
-<span id="sec-rad-processes"></span><h2>Radiative processes<a class="headerlink" href="#radiative-processes" title="Permalink to this heading"></a></h2>
+<span id="sec-rad-processes"></span><h2>Radiative processes<a class="headerlink" href="#radiative-processes" title="Link to this heading"></a></h2>
 <p>Currently RADMC-3D handles the following radiative processes:</p>
 <ul>
 <li><p>Dust thermal emission and absorption</p>
@@ -283,7 +291,7 @@ applications presumably not worth the computational effort.</p>
 </ul>
 </section>
 <section id="coordinate-systems">
-<span id="sec-coord-systems"></span><h2>Coordinate systems<a class="headerlink" href="#coordinate-systems" title="Permalink to this heading"></a></h2>
+<span id="sec-coord-systems"></span><h2>Coordinate systems<a class="headerlink" href="#coordinate-systems" title="Link to this heading"></a></h2>
 <p>With RADMC-3D you can specify your density distribution in two coordinate
 systems:</p>
 <ul>
@@ -343,7 +351,7 @@ When using spherical coordinates, please read Section
 </ul>
 </section>
 <section id="the-spatial-grid">
-<span id="sec-spatial-grid"></span><h2>The spatial grid<a class="headerlink" href="#the-spatial-grid" title="Permalink to this heading"></a></h2>
+<span id="sec-spatial-grid"></span><h2>The spatial grid<a class="headerlink" href="#the-spatial-grid" title="Link to this heading"></a></h2>
 <p>To specify the density or temperature structure (or any other spatial
 variable) as a function of spatial location we must have a grid. There
 are two basic types of grids:</p>
@@ -398,7 +406,7 @@ its simplified version: the layer-style grid refinement. See Section
 about the gridding and the (adaptive) mesh refinement (AMR).</p>
 </section>
 <section id="computations-that-radmc-3d-can-perform">
-<span id="sec-actions"></span><h2>Computations that RADMC-3D can perform<a class="headerlink" href="#computations-that-radmc-3d-can-perform" title="Permalink to this heading"></a></h2>
+<span id="sec-actions"></span><h2>Computations that RADMC-3D can perform<a class="headerlink" href="#computations-that-radmc-3d-can-perform" title="Link to this heading"></a></h2>
 <p>The code RADMC-3D (i.e. the executable <code class="docutils literal notranslate"><span class="pre">radmc3d</span></code>) is <em>one</em> code for <em>many</em>
 actions. Depending on which command-line arguments you give, RADMC-3D can do
 various actions. Here is a list:</p>
@@ -461,7 +469,7 @@ images, then you will not use this.</p>
 things as well, which will be described throughout this manual.</p>
 </section>
 <section id="how-a-model-is-set-up-and-computed-a-rough-overview">
-<h2>How a model is set up and computed: a rough overview<a class="headerlink" href="#how-a-model-is-set-up-and-computed-a-rough-overview" title="Permalink to this heading"></a></h2>
+<h2>How a model is set up and computed: a rough overview<a class="headerlink" href="#how-a-model-is-set-up-and-computed-a-rough-overview" title="Link to this heading"></a></h2>
 <p>A radiative transfer code such as RADMC-3D has the task of computing synthetic
 images and spectra of a model that you specify. You tell the code what the dust
 and/or gas density distribution in 3-D space is and where the star(s) are, and
@@ -515,7 +523,7 @@ also many other radiative transfer problem types. The above example is really
 just meant to give an impression of how RADMC-3D works.</p>
 </section>
 <section id="organization-of-model-directories">
-<span id="sec-rough-overview-models"></span><h2>Organization of model directories<a class="headerlink" href="#organization-of-model-directories" title="Permalink to this heading"></a></h2>
+<span id="sec-rough-overview-models"></span><h2>Organization of model directories<a class="headerlink" href="#organization-of-model-directories" title="Link to this heading"></a></h2>
 <p>The general philosophy of the RADMC-3D code package is the following. The core
 of everything is the fortran code <code class="docutils literal notranslate"><span class="pre">radmc3d</span></code>. This is the main code which does
 the hard work for you: it makes the radiative transfer calculations, makes
@@ -559,7 +567,7 @@ other plotting software and/or data postprocessing packages.</p></li>
 </ol>
 </section>
 <section id="running-the-example-models">
-<span id="sec-example-models"></span><h2>Running the example models<a class="headerlink" href="#running-the-example-models" title="Permalink to this heading"></a></h2>
+<span id="sec-example-models"></span><h2>Running the example models<a class="headerlink" href="#running-the-example-models" title="Link to this heading"></a></h2>
 <p>Often the fastest and easiest way to learn a code is simply to analyze and run a
 set of example models. They are listed in the <code class="docutils literal notranslate"><span class="pre">examples</span></code> directory. Each model
 occupies a separate directory. This is also the style we normally recommend:

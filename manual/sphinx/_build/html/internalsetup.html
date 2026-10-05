@@ -1,22 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Modifying RADMC-3D: Internal setup and user-specified radiative processes &mdash; radmc3d 2.0 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=60dbed4a"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -29,11 +29,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> radmc3d
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            radmc3d
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -84,8 +88,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Modifying RADMC-3D: Internal setup and user-specified radiative processes</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Modifying RADMC-3D: Internal setup and user-specified radiative processes</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/internalsetup.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -96,7 +100,7 @@
            <div itemprop="articleBody">
              
   <section id="modifying-radmc-3d-internal-setup-and-user-specified-radiative-processes">
-<span id="chap-internal-setup"></span><h1>Modifying RADMC-3D: Internal setup and user-specified radiative processes<a class="headerlink" href="#modifying-radmc-3d-internal-setup-and-user-specified-radiative-processes" title="Permalink to this heading"></a></h1>
+<span id="chap-internal-setup"></span><h1>Modifying RADMC-3D: Internal setup and user-specified radiative processes<a class="headerlink" href="#modifying-radmc-3d-internal-setup-and-user-specified-radiative-processes" title="Link to this heading"></a></h1>
 <p>It has been mentioned several times before that as an alternative to the
 standard <cite>compile once-and-for-all’ philosophy, one can also use RADMC-3D by
 modifying the code directly so that ``radmc3d`</cite> will have new
@@ -110,7 +114,7 @@ in Section <a class="reference internal" href="installation.html#sec-special-pur
 files in the <code class="docutils literal notranslate"><span class="pre">src/</span></code> directory stay unaffected, and only local
 copies are edited.</p>
 <section id="setting-up-a-model-inside-of-radmc-3d">
-<h2>Setting up a model <em>inside</em> of RADMC-3D<a class="headerlink" href="#setting-up-a-model-inside-of-radmc-3d" title="Permalink to this heading"></a></h2>
+<h2>Setting up a model <em>inside</em> of RADMC-3D<a class="headerlink" href="#setting-up-a-model-inside-of-radmc-3d" title="Link to this heading"></a></h2>
 <p>The most common reason for editing the code itself is for setting up the
 model <em>internally</em> rather than reading in all data via input files. For
 a list of advantages and disadvantages of setting models up internally as
@@ -138,9 +142,10 @@ call from within the standard subroutines.</p></li>
 <a class="reference internal" href="#sec-predef-userdef"><span class="std std-ref">The pre-defined subroutines of the userdef_module.f90</span></a>).</p></li>
 </ul>
 <figure class="align-default" id="id1">
-<span id="fig-dataflow-basic-userdef"></span><img alt="_images/dataflow-basic-userdef.svg" src="_images/dataflow-basic-userdef.svg" /><figcaption>
+<span id="fig-dataflow-basic-userdef"></span><img alt="_images/dataflow-basic-userdef.svg" src="_images/dataflow-basic-userdef.svg" />
+<figcaption>
 <p><span class="caption-number">Fig. 27 </span><span class="caption-text">Pictographic representation of the dataflow for the case when you define your
-model <em>internally</em> using the <code class="docutils literal notranslate"><span class="pre">userdef_module.f90</span></code>.</span><a class="headerlink" href="#id1" title="Permalink to this image"></a></p>
+model <em>internally</em> using the <code class="docutils literal notranslate"><span class="pre">userdef_module.f90</span></code>.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>Often you still want some of the input data to be still read in in the usual
@@ -155,7 +160,7 @@ is set up with the <code class="docutils literal notranslate"><span class="pre">
 model setup is graphically depicted.</p>
 </section>
 <section id="the-pre-defined-subroutines-of-the-userdef-module-f90">
-<span id="sec-predef-userdef"></span><h2>The pre-defined subroutines of the userdef_module.f90<a class="headerlink" href="#the-pre-defined-subroutines-of-the-userdef-module-f90" title="Permalink to this heading"></a></h2>
+<span id="sec-predef-userdef"></span><h2>The pre-defined subroutines of the userdef_module.f90<a class="headerlink" href="#the-pre-defined-subroutines-of-the-userdef-module-f90" title="Link to this heading"></a></h2>
 <p>The idea of the <code class="docutils literal notranslate"><span class="pre">userdef_module.f90</span></code> is that it contains a number of standard
 pre-defined subroutines that are called from the <code class="docutils literal notranslate"><span class="pre">main.f90</span></code> code (and <em>only</em>
 from there). Just browse through the <code class="docutils literal notranslate"><span class="pre">main.f90</span></code> file and search for the
@@ -291,7 +296,7 @@ following types of data are still supposed to be read from file:</p>
 which are set up in this internal way.</p>
 </section>
 <section id="some-caveats-and-advantages-of-internal-model-setup">
-<span id="sec-internalsetup-proscons"></span><h2>Some caveats and advantages of internal model setup<a class="headerlink" href="#some-caveats-and-advantages-of-internal-model-setup" title="Permalink to this heading"></a></h2>
+<span id="sec-internalsetup-proscons"></span><h2>Some caveats and advantages of internal model setup<a class="headerlink" href="#some-caveats-and-advantages-of-internal-model-setup" title="Link to this heading"></a></h2>
 <p>Setting up the models internally has several advantages as well as
 disadvantages compared to the standard way of feeding the models into
 <code class="docutils literal notranslate"><span class="pre">radmc3d</span></code> via files. The advantages are, among others:</p>
@@ -338,7 +343,7 @@ code, as you will need to directly insert code lines in the
 </ul>
 </section>
 <section id="using-the-userdef-module-to-compute-integrals-of-j-nu">
-<span id="sec-compute-radiation-integrals"></span><h2>Using the userdef module to compute integrals of <span class="math notranslate nohighlight">\(J_\nu\)</span><a class="headerlink" href="#using-the-userdef-module-to-compute-integrals-of-j-nu" title="Permalink to this heading"></a></h2>
+<span id="sec-compute-radiation-integrals"></span><h2>Using the userdef module to compute integrals of <span class="math notranslate nohighlight">\(J_\nu\)</span><a class="headerlink" href="#using-the-userdef-module-to-compute-integrals-of-j-nu" title="Link to this heading"></a></h2>
 <p>With the monochromatic Monte Carlo computation (see Section
 <a class="reference internal" href="dustradtrans.html#sec-dust-monochromatic-monte-carlo"><span class="std std-ref">Special-purpose feature: Computing the local radiation field</span></a>) we can calculate the mean intensity
 <span class="math notranslate nohighlight">\(J_\nu\)</span> at every location in the model at a user-defined set of
@@ -366,7 +371,7 @@ the example model <code class="docutils literal notranslate"><span class="pre">r
 <p><em>STILL IN PROGRESS.</em></p>
 </section>
 <section id="some-tips-and-tricks-for-programming-user-defined-subroutines">
-<h2>Some tips and tricks for programming user-defined subroutines<a class="headerlink" href="#some-tips-and-tricks-for-programming-user-defined-subroutines" title="Permalink to this heading"></a></h2>
+<h2>Some tips and tricks for programming user-defined subroutines<a class="headerlink" href="#some-tips-and-tricks-for-programming-user-defined-subroutines" title="Link to this heading"></a></h2>
 <p>Apart from the standard subroutines that <em>must</em> be present in the
 <code class="docutils literal notranslate"><span class="pre">userdef_module.f90</span></code> file (see Section <a class="reference internal" href="#sec-predef-userdef"><span class="std std-ref">The pre-defined subroutines of the userdef_module.f90</span></a>), you are
 free to add any subroutines or functions that you want, which you can call from
@@ -407,7 +412,7 @@ the AMR-tree structure of this cell. The pointer <code class="docutils literal n
 </div>
 </section>
 <section id="creating-your-own-emission-and-absorption-processes">
-<h2>Creating your own emission and absorption processes<a class="headerlink" href="#creating-your-own-emission-and-absorption-processes" title="Permalink to this heading"></a></h2>
+<h2>Creating your own emission and absorption processes<a class="headerlink" href="#creating-your-own-emission-and-absorption-processes" title="Link to this heading"></a></h2>
 <p>RADMC-3D Allows you to add your own physics to the ray-tracing images and
 spectra. At every point during the ray-tracing process, when it computes the
 emissivity and extinction coefficients <span class="math notranslate nohighlight">\(j_\nu\)</span> and <span class="math notranslate nohighlight">\(\alpha_\nu\)</span> it
