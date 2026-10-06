@@ -4257,7 +4257,7 @@ subroutine camera_make_rect_image(img,tausurf)
        !
        !!$ Local variables from this function.
        !
-       !$OMP PRIVATE(px,py,id,nthreads,pixel_count)
+       !$OMP PRIVATE(px,py,id,nthreads,pixel_count,inuu,quvsq)
        !
        ! pixel_count = 0
        !
@@ -7310,7 +7310,7 @@ subroutine camera_make_circ_image()
     !
     !!$ Local variables from this function.
     !
-    !$OMP PRIVATE(ir,iphi,px,py,x,y,z,dirx,diry,dirz,distance,r,phi,id,nthreads,pixel_count)
+    !$OMP PRIVATE(ir,iphi,px,py,x,y,z,dirx,diry,dirz,distance,r,phi,id,nthreads,pixel_count,inuu,quvsq)
     !
     ! pixel_count = 0
     !
@@ -7409,6 +7409,7 @@ subroutine camera_make_circ_image()
        !
        px = 0.d0
        py = 0.d0
+       call camera_set_ray(px,py,x,y,z,dirx,diry,dirz,distance)
        x  = dirx * star_r(1)
        y  = diry * star_r(1)
        z  = dirz * star_r(1)
