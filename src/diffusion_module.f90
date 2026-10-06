@@ -39,16 +39,18 @@ subroutine smooth_by_diffusion
   character*200 :: current_dir, radmc3d_exe
   character(len=:), allocatable :: dummy, radmc3d_dir
   character*400 :: cmd_line
+  integer :: nthreads=1
 
   call get_environment_variable("PWD",current_dir)
   call get_command_argument(0, radmc3d_exe)
 
   dummy = trim(radmc3d_exe)
   radmc3d_dir = dummy(1:len(dummy)-11)
+  !$ nthreads = setthreads
 
   write(cmd_line, "(a, a, a, a, F10.2, i2, i4)") "python3 ", &
                   radmc3d_dir, "python/diffusion.py ", trim(current_dir), &
-                  rt_mcparams%nphotdiff, rt_mcparams%nphotdiff_type, setthreads
+                  rt_mcparams%nphotdiff, rt_mcparams%nphotdiff_type, nthreads
   !call execute_command_line("conda init zsh")
   call execute_command_line(trim(cmd_line))
 
