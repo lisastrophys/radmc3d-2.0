@@ -118,9 +118,14 @@ if nphot_type==2:
     shutil.copy(working_folder+f'photon_statistics.out', working_folder+f'photon_statistics_00.out')
     shutil.move(working_folder + f'dust_temperature.dat', working_folder + f'dust_temperature_ini.dat')
     for i in range(1,10):
-        subprocess.run(["radmc3d", "mctherm", "setthreads", f"{setthreads}"],
-                       stdout=subprocess.DEVNULL,
-                       stderr=subprocess.DEVNULL)
+        if setthreads==1:
+            subprocess.run(["radmc3d", "mctherm"],
+                           stdout=subprocess.DEVNULL,
+                           stderr=subprocess.DEVNULL)
+        else:
+            subprocess.run(["radmc3d", "mctherm", "setthreads", f"{setthreads}"],
+                           stdout=subprocess.DEVNULL,
+                           stderr=subprocess.DEVNULL)
         shutil.copy(working_folder + f'photon_statistics.out', working_folder + f'photon_statistics_{i:02d}.out')
 
     for i in range(10):
