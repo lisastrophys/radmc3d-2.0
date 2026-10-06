@@ -305,6 +305,7 @@ module camera_module
   !
   !!!!!!$OMP THREADPRIVATE(camera_nrrefine)
   !$OMP THREADPRIVATE(camera_intensity_iquv)
+  !$OMP THREADPRIVATE(camera_istar)
 contains
 
 
