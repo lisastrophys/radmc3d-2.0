@@ -2973,6 +2973,12 @@ recursive subroutine camera_compute_one_pixel(nrfreq,inu0,inu1,px,py,pdx,pdy,  &
            ! sub-pixels have to be refined
            !
            if(todo) then
+              ! idum wasn't necessarily initialised before - Lis Zwicky
+              if(nrrefine.gt.0) then
+                 idum = nrrefine-1
+              else
+                 idum = nrrefine
+              endif
               !
               ! Reset some stuff
               !
@@ -3066,6 +3072,7 @@ recursive subroutine camera_compute_one_pixel(nrfreq,inu0,inu1,px,py,pdx,pdy,  &
                  !
                  ! More than one star. Refine.
                  !
+                 idum = nrrefine
                  ! Reset some stuff
                  !
                  dx1  = 0.5d0*pdx
