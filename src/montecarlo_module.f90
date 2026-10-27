@@ -209,6 +209,20 @@ double precision, allocatable :: mcscat_scatsrc_iquv(:,:,:,:)
 !
 double precision, allocatable :: mcscat_meanint(:,:)
 !
+! The storage arrays for the first (H) and second (K) angular moments of
+! the radiation field at the frequencies stored in mc_frequencies, as
+! computed by "radmc3d mcmono" together with the mean intensity J:
+!
+!   H_i  = (1/4pi) int I n_i     dOmega      i   = 1..3
+!   K_ij = (1/4pi) int I n_i n_j dOmega      ij  = 11,22,33,12,13,23
+!
+! The components are with respect to the Cartesian basis (x,y,z) for
+! Cartesian grids, and the local spherical basis (r,theta,phi) for
+! spherical grids. Note that trace(K) = J.
+!
+double precision, allocatable :: mcscat_hmoment(:,:,:)
+double precision, allocatable :: mcscat_kmoment(:,:,:)
+!
 ! The array of the thermal emissivity
 !
 double precision, allocatable :: mc_cumulthermemis(:)
@@ -766,6 +780,24 @@ subroutine montecarlo_init(params,ierr,mcaction,resetseed)
         else
            mcscat_meanint(:,:) = 0.d0
         endif
+        allocate(mcscat_hmoment(1:3,1:mc_nrfreq,1:nrcellsmax),STAT=ierr)
+        if(ierr.ne.0) then
+           write(stdo,*) 'ERROR in Montecarlo Module: Could not allocate mcscat_hmoment()'
+           write(stdo,*) '      This array requires ',3*mc_nrfreq* &
+                (nrcellsmax*8.d0)/(1024.*1024),' Mbytes'
+           stop
+        else
+           mcscat_hmoment(:,:,:) = 0.d0
+        endif
+        allocate(mcscat_kmoment(1:6,1:mc_nrfreq,1:nrcellsmax),STAT=ierr)
+        if(ierr.ne.0) then
+           write(stdo,*) 'ERROR in Montecarlo Module: Could not allocate mcscat_kmoment()'
+           write(stdo,*) '      This array requires ',6*mc_nrfreq* &
+                (nrcellsmax*8.d0)/(1024.*1024),' Mbytes'
+           stop
+        else
+           mcscat_kmoment(:,:,:) = 0.d0
+        endif
      endif
      !
      ! 
@@ -1200,6 +1232,8 @@ subroutine montecarlo_partial_cleanup()
   if(allocated(zcumul)) deallocate(zcumul)
   if(allocated(mcscat_scatsrc_iquv)) deallocate(mcscat_scatsrc_iquv)
   if(allocated(mcscat_meanint)) deallocate(mcscat_meanint)
+  if(allocated(mcscat_hmoment)) deallocate(mcscat_hmoment)
+  if(allocated(mcscat_kmoment)) deallocate(mcscat_kmoment)
   if(allocated(mc_cumulthermemis)) deallocate(mc_cumulthermemis)
   if(allocated(mc_stellarsrc_templates)) deallocate(mc_stellarsrc_templates)
   if(allocated(mc_energy_stars)) deallocate(mc_energy_stars)
@@ -7321,6 +7355,14 @@ subroutine walk_cells_scat(params,taupath,ener,inu,arrived,ispecc,ierror)
            mnint = dss * enerav / ( cellvolume(ray_index) * 12.566371d0 )
            mcscat_meanint(ray_inu,ray_index) =                            &
                 mcscat_meanint(ray_inu,ray_index) + mnint
+           !
+           ! Also add to the H and K moments. Note: use prev_dirz, because
+           ! ray_cart_dirz may already have been flipped by a mirror boundary.
+           !
+           if(allocated(mcscat_kmoment)) then
+              call add_hk_moments(ray_inu,ray_index,prev_x,prev_y,prev_z, &
+                   ray_cart_dirx,ray_cart_diry,prev_dirz,dss,dtauabs,enerav)
+           endif
         endif
         endif ! This endif is for the selectscat analysis stuff (normally not important)
         !
@@ -7691,6 +7733,14 @@ subroutine walk_cells_scat(params,taupath,ener,inu,arrived,ispecc,ierror)
            mnint = ds * enerav / ( cellvolume(ray_index) * 12.566371d0 )
            mcscat_meanint(ray_inu,ray_index) =                            &
                 mcscat_meanint(ray_inu,ray_index) + mnint
+           !
+           ! Also add to the H and K moments. Note: use prev_dirz, because
+           ! ray_cart_dirz may already have been flipped by a mirror boundary.
+           !
+           if(allocated(mcscat_kmoment)) then
+              call add_hk_moments(ray_inu,ray_index,prev_x,prev_y,prev_z, &
+                   ray_cart_dirx,ray_cart_diry,prev_dirz,ds,dtauabs,enerav)
+           endif
         endif
         endif ! This endif is for the selectscat analysis stuff (normally not important)
         !
@@ -8840,6 +8890,280 @@ subroutine write_meanint_to_file()
   endif
 end subroutine write_meanint_to_file
 
+!--------------------------------------------------------------------------
+!        ADD A RAY SEGMENT TO THE H (FLUX) AND K (PRESSURE) MOMENTS
+!
+! This is the path-length estimator of the mean intensity, weighted with
+! the direction of the photon package:
+!
+!   J    = 1/(4 pi V) sum <E> l
+!   H_i  = 1/(4 pi V) sum <E> l n_i
+!   K_ij = 1/(4 pi V) sum <E> l n_i n_j
+!
+! where <E> = enerav is the package energy averaged over the segment
+! (absorption is treated as a continuous loss along the segment) and l
+! is the segment length.
+!
+! For Cartesian grids the components are Cartesian (x,y,z). The direction
+! is constant along a straight segment, so this is exact.
+!
+! For spherical grids the components are taken in the local spherical
+! basis (e_r,e_theta,e_phi), which changes along the segment. The
+! segment average of n_i n_j (and n_i) is then computed with 4-point
+! Gauss-Legendre quadrature, weighted with the exponential energy loss
+! exp(-dtauabs*s/l) along the segment. The quadrature weights are
+! normalized such that trace(K) equals the J contribution exactly.
+!
+! Component order:  H: (1,2,3)
+!                   K: (11,22,33,12,13,23)
+! with 1,2,3 = x,y,z (Cartesian) or r,theta,phi (spherical).
+!
+! ARGUMENTS:
+!  inu            Frequency index in mc_frequencies
+!  index          Cell index
+!  x0,y0,z0       Start point of the segment
+!  nx,ny,nz       Direction of the package along the segment
+!  len            Length of the segment inside this cell
+!  dtauabs        Absorption optical depth along the segment
+!  enerav         Package energy averaged over the segment
+!--------------------------------------------------------------------------
+subroutine add_hk_moments(inu,index,x0,y0,z0,nx,ny,nz,len,dtauabs,enerav)
+  implicit none
+  integer :: inu,index,k
+  double precision :: x0,y0,z0,nx,ny,nz,len,dtauabs,enerav
+  double precision :: w,x,y,z,r,rc,ct,st,cp,sp,ek,wsum
+  double precision :: e1,e2,e3
+  double precision :: hh(1:3),kk(1:6)
+  !
+  ! 4-point Gauss-Legendre nodes and weights, mapped to the interval [0,1]
+  !
+  double precision, parameter :: gl_t(1:4) = (/                  &
+       0.0694318442029737d0, 0.3300094782075719d0,               &
+       0.6699905217924281d0, 0.9305681557970263d0 /)
+  double precision, parameter :: gl_w(1:4) = (/                  &
+       0.1739274225687269d0, 0.3260725774312731d0,               &
+       0.3260725774312731d0, 0.1739274225687269d0 /)
+  !
+  ! Weight of this segment (identical to its contribution to J)
+  !
+  w = len * enerav / ( cellvolume(index) * fourpi )
+  !
+  if(igrid_coord.ge.100) then
+     !
+     ! Spherical grid: use the local spherical basis, averaged over the
+     ! segment with Gauss-Legendre quadrature.
+     !
+     hh(:) = 0.d0
+     kk(:) = 0.d0
+     wsum  = 0.d0
+     do k=1,4
+        !
+        ! Energy weight relative to the first node (avoids underflow
+        ! for optically thick segments)
+        !
+        ek = gl_w(k) * exp(-dtauabs*(gl_t(k)-gl_t(1)))
+        !
+        ! Position of the node
+        !
+        x  = x0 + gl_t(k) * len * nx
+        y  = y0 + gl_t(k) * len * ny
+        z  = z0 + gl_t(k) * len * nz
+        r  = sqrt(x*x+y*y+z*z)
+        rc = sqrt(x*x+y*y)
+        !
+        ! Components of n in the local spherical basis
+        !
+        if(r.gt.0.d0) then
+           ct = z/r
+           st = rc/r
+           if(rc.gt.0.d0) then
+              cp = x/rc
+              sp = y/rc
+           else
+              cp = 1.d0
+              sp = 0.d0
+           endif
+           e1 =  st*cp*nx + st*sp*ny + ct*nz         ! n . e_r
+           e2 =  ct*cp*nx + ct*sp*ny - st*nz         ! n . e_theta
+           e3 = -sp*nx    + cp*ny                    ! n . e_phi
+        else
+           e1 = 1.d0
+           e2 = 0.d0
+           e3 = 0.d0
+        endif
+        !
+        ! Accumulate
+        !
+        hh(1) = hh(1) + ek*e1
+        hh(2) = hh(2) + ek*e2
+        hh(3) = hh(3) + ek*e3
+        kk(1) = kk(1) + ek*e1*e1
+        kk(2) = kk(2) + ek*e2*e2
+        kk(3) = kk(3) + ek*e3*e3
+        kk(4) = kk(4) + ek*e1*e2
+        kk(5) = kk(5) + ek*e1*e3
+        kk(6) = kk(6) + ek*e2*e3
+        wsum  = wsum  + ek
+     enddo
+     hh(:) = hh(:) / wsum
+     kk(:) = kk(:) / wsum
+  else
+     !
+     ! Cartesian grid: direction is constant along the segment
+     !
+     hh(1) = nx
+     hh(2) = ny
+     hh(3) = nz
+     kk(1) = nx*nx
+     kk(2) = ny*ny
+     kk(3) = nz*nz
+     kk(4) = nx*ny
+     kk(5) = nx*nz
+     kk(6) = ny*nz
+  endif
+  !
+  ! Add to the moments. Note: the cell is locked by OpenMP at this point.
+  !
+  mcscat_hmoment(1:3,inu,index) = mcscat_hmoment(1:3,inu,index) + w * hh(1:3)
+  mcscat_kmoment(1:6,inu,index) = mcscat_kmoment(1:6,inu,index) + w * kk(1:6)
+  !
+end subroutine add_hk_moments
+
+
+!--------------------------------------------------------------------------
+!                WRITE THE H AND K MOMENTS TO FILE
+!
+! Files: h_moment.out / .uout / .bout   (3 columns)
+!        k_moment.out / .uout / .bout   (6 columns)
+!
+! The header is identical to that of mean_intensity.out:
+!   format number (=2), nr of cells, nr of frequencies, frequencies [Hz]
+! followed, for each frequency, by one line per cell containing the
+! components. Order of the components:
+!   h_moment: H_1 H_2 H_3
+!   k_moment: K_11 K_22 K_33 K_12 K_13 K_23
+! with 1,2,3 = x,y,z for Cartesian grids and r,theta,phi for spherical
+! grids. Units: erg/s/cm^2/Hz/ster (same as the mean intensity).
+!--------------------------------------------------------------------------
+subroutine write_hk_moments_to_file()
+  implicit none
+  integer :: inu,precis,iw,ncomp
+  integer(kind=8) :: nn,kk
+  character*80 :: base,filename
+  !
+  ! Check
+  !
+  if((.not.allocated(mcscat_hmoment)).or.(.not.allocated(mcscat_kmoment))) then
+     write(stdo,*) 'ERROR: H and K moment arrays not allocated'
+     stop
+  endif
+  !
+  ! Determine the precision
+  !
+  if(rto_single) then
+     precis = 4
+  else
+     precis = 8
+  endif
+  !
+  ! Only regular and AMR grids
+  !
+  if(igrid_type.ge.100) then
+     write(stdo,*) 'ERROR: Only regular and AMR grids implemented'
+     stop
+  endif
+  !
+  ! Just make sure that the cell list is complete
+  !
+  if(amr_tree_present) then
+     call amr_compute_list_all()
+  endif
+  !
+  ! Do a stupidity check
+  !
+  if(nrcells.ne.amr_nrleafs) stop 3210
+  !
+  ! Message about the basis
+  !
+  if(igrid_coord.ge.100) then
+     write(stdo,*) 'H and K moments are given in the local spherical basis (r,theta,phi)'
+  else
+     write(stdo,*) 'H and K moments are given in the Cartesian basis (x,y,z)'
+  endif
+  !
+  ! Loop over the two files
+  !
+  do iw=1,2
+     if(iw.eq.1) then
+        base  = 'h_moment'
+        ncomp = 3
+     else
+        base  = 'k_moment'
+        ncomp = 6
+     endif
+     !
+     ! Open file and write header
+     !
+     if(rto_style.eq.1) then
+        filename = trim(base)//'.out'
+        open(unit=1,file=filename)
+        write(1,*) 2                                   ! Format number
+        write(1,*) nrcellsinp
+        write(1,*) mc_nrfreq
+        write(1,*) (mc_frequencies(inu),inu=1,mc_nrfreq)
+     elseif(rto_style.eq.2) then
+        filename = trim(base)//'.uout'
+        open(unit=1,file=filename,form='unformatted')
+        nn = 2
+        kk = rto_reclen
+        write(1) nn,kk
+        nn = nrcellsinp
+        kk = mc_nrfreq
+        write(1) nn,kk
+        write(1) (mc_frequencies(inu),inu=1,mc_nrfreq)
+     elseif(rto_style.eq.3) then
+        filename = trim(base)//'.bout'
+        open(unit=1,file=filename,status='replace',access='stream')
+        nn = 2
+        kk = precis
+        write(1) nn,kk
+        nn = nrcellsinp
+        kk = mc_nrfreq
+        write(1) nn,kk
+        write(1) (mc_frequencies(inu),inu=1,mc_nrfreq)
+     else
+        write(stdo,*) 'ERROR: Do not know I/O style ',rto_style
+        stop
+     endif
+     write(stdo,*) 'Writing ',trim(filename)
+     call flush(stdo)
+     !
+     ! Write the components, one frequency at a time, one line
+     ! (record) per cell
+     !
+     do inu=1,mc_nrfreq
+        if(iw.eq.1) then
+           call write_vectorfield(1,rto_style,precis,3,ncomp,nrcellsinp, &
+                mc_nrfreq,inu,vector1=mcscat_hmoment)
+        else
+           call write_vectorfield(1,rto_style,precis,6,ncomp,nrcellsinp, &
+                mc_nrfreq,inu,vector1=mcscat_kmoment)
+        endif
+     enddo
+     !
+     ! Close
+     !
+     close(1)
+  enddo
+  !
+  ! If the grid is internally made, then make sure the grid file
+  ! is written as well
+  !
+  if((.not.grid_was_read_from_file).and.(.not.grid_was_written_to_file)) then
+     call write_grid_file()
+     grid_was_written_to_file = .true.
+  endif
+end subroutine write_hk_moments_to_file
 
 
 !--------------------------------------------------------------------------

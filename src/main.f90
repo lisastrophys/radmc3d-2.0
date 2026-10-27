@@ -988,6 +988,11 @@ program radmc3d
         !
         write(stdo,*) 'Writing mean intensity file...'
         call write_meanint_to_file()
+        !
+        ! Write the H and K moments (flux vector and pressure tensor)
+        !
+        write(stdo,*) 'Writing H and K moment files...'
+        call write_hk_moments_to_file()
      endif
      !
      !----------------------------------------------------------------
